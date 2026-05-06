@@ -1,223 +1,643 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Danu HR Leave System</title>
-
-<script src="https://apis.google.com/js/api.js"></script>
-<script src="https://accounts.google.com/gsi/client"></script>
-
-<style>
-/* ================= BASE UI ================= */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: Arial, sans-serif;
-    background: #f1f5f9;
-    color: #0f172a;
-}
-
-/* AUTH SCREEN */
-.auth {
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-}
-
-.card {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    text-align: center;
-    width: 320px;
-}
-
-button {
-    background: #2563eb;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    margin-top: 10px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #1e40af;
-}
-
-/* APP */
-.hidden { display: none; }
-
-header {
-    background: white;
-    padding: 15px;
-    border-bottom: 1px solid #e2e8f0;
-    display: flex;
-    justify-content: space-between;
-}
-
-.container {
-    padding: 20px;
-}
-
-.panel {
-    background: white;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-}
-
-#debug {
-    position: fixed;
-    bottom: 10px;
-    left: 10px;
-    background: black;
-    color: lime;
-    font-size: 12px;
-    padding: 8px;
-    max-width: 90%;
-}
-</style>
-</head>
-
-<body>
-
-<div id="debug">Loading system...</div>
-
-<!-- AUTH -->
-<div id="authScreen" class="auth">
-    <div class="card">
-        <h2>Danu HR System</h2>
-        <p>Sign in to continue</p>
-        <button id="loginBtn">Sign in with Google</button>
-    </div>
-</div>
-
-<!-- APP -->
-<div id="appScreen" class="hidden">
-
-<header>
-    <h3>HR Dashboard</h3>
-    <button id="logoutBtn">Logout</button>
-</header>
-
-<div class="container">
-
-    <div class="panel">
-        <h3>Google Sheets Connection</h3>
-        <button onclick="testConnection()">Test Connection</button>
-        <p id="status"></p>
-    </div>
-
-</div>
-
-</div>
-
-<script>
-/* ================= CONFIG (YOUR WORKING DATA) ================= */
-const CONFIG = {
-    CLIENT_ID: "1058574831034-cb30fi18f3f05937969jksvhipso5hav.apps.googleusercontent.com",
-    API_KEY: "AIzaSyD4oMaBJeXQy8JCpzqcOAJ9HexNAKCPlyY",
-    SHEET_ID: "1NnOJFFLbPtuPYbI53dXIKA_KezdnxhCiqsPteuvL1Fc",
-    SCOPES: "https://www.googleapis.com/auth/spreadsheets"
-};
-
-let tokenClient;
-let accessToken = null;
-
-/* ================= DEBUG ================= */
-function log(msg){
-    document.getElementById("debug").innerText = msg;
-}
-
-/* ================= INIT ================= */
-window.onload = async () => {
-    log("Initializing...");
-
-    await gapi.load("client", async () => {
-        await gapi.client.init({
-            apiKey: CONFIG.API_KEY,
-            discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"]
-        });
-
-        log("Google API Ready ✔");
-        initAuth();
-    });
-};
-
-/* ================= AUTH ================= */
-function initAuth() {
-    tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CONFIG.CLIENT_ID,
-        scope: CONFIG.SCOPES,
-        callback: (resp) => {
-            accessToken = resp.access_token;
-
-            gapi.client.setToken({
-                access_token: accessToken
-            });
-
-            showApp();
-            log("Login success ✔");
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Leave Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-    });
-}
 
-/* ================= UI ================= */
-function showApp(){
-    document.getElementById("authScreen").classList.add("hidden");
-    document.getElementById("appScreen").classList.remove("hidden");
-}
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #64748b;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #ea580c;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
 
-function showAuth(){
-    document.getElementById("authScreen").classList.remove("hidden");
-    document.getElementById("appScreen").classList.add("hidden");
-}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+        }
 
-/* ================= BUTTONS ================= */
-document.getElementById("loginBtn").onclick = () => {
-    tokenClient.requestAccessToken({ prompt: "consent" });
-};
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
 
-document.getElementById("logoutBtn").onclick = () => {
-    gapi.client.setToken(null);
-    accessToken = null;
-    showAuth();
-    log("Logged out");
-};
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
 
-/* ================= TEST SHEET ================= */
-async function testConnection(){
-    try {
-        const res = await gapi.client.sheets.spreadsheets.values.get({
-            spreadsheetId: CONFIG.SHEET_ID,
-            range: "Employees!A:D"
+        header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: var(--text-muted);
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            padding: 0 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-tabs button {
+            background: none;
+            border: none;
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs button:hover {
+            color: var(--primary);
+        }
+
+        .nav-tabs button.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-section {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #15803d;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #475569;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--surface);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        thead {
+            background-color: #f1f5f9;
+            border-bottom: 2px solid var(--border);
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-approved {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-rejected {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+
+        .alert-success {
+            background-color: #f0fdf4;
+            border-color: var(--success);
+            color: #166534;
+        }
+
+        .alert-error {
+            background-color: #fef2f2;
+            border-color: var(--danger);
+            color: #991b1b;
+        }
+
+        .alert-warning {
+            background-color: #fffbeb;
+            border-color: var(--warning);
+            color: #92400e;
+        }
+
+        .alert-info {
+            background-color: #eff6ff;
+            border-color: var(--primary);
+            color: #1e40af;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card h3 {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .auth-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 40px;
+            background: var(--surface);
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+
+        .auth-container h1 {
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            th, td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Auth Container -->
+    <div id="authContainer" class="auth-container">
+        <h1>HR Leave Management System</h1>
+        <p style="margin-bottom: 30px; color: var(--text-muted);">Connect with Google Sheets to get started</p>
+        <button id="loginBtn" class="btn-primary" style="width: 100%;">Sign In with Google</button>
+    </div>
+
+    <!-- Main App Container (Hidden until logged in) -->
+    <div id="appContainer" class="hidden">
+        <header>
+            <div class="container">
+                <h1>HR Leave Management System</h1>
+                <p>Manage employee leave requests and balances efficiently</p>
+                <button id="logoutBtn" class="btn-secondary" style="margin-top: 15px;">Logout</button>
+            </div>
+        </header>
+
+        <div class="container">
+            <div id="alertContainer"></div>
+
+            <div class="nav-tabs">
+                <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+                <button class="tab-btn" data-tab="employees">Employees</button>
+                <button class="tab-btn" data-tab="leave-requests">Leave Requests</button>
+                <button class="tab-btn" data-tab="leave-balance">Leave Balance</button>
+                <button class="tab-btn" data-tab="logs">Activity Logs</button>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card"><h3>Total Employees</h3><div class="value" id="totalEmployees">0</div></div>
+                    <div class="stat-card"><h3>Pending Requests</h3><div class="value" id="pendingRequests">0</div></div>
+                    <div class="stat-card"><h3>Approved This Month</h3><div class="value" id="approvedMonth">0</div></div>
+                    <div class="stat-card"><h3>Total Actions Logged</h3><div class="value" id="totalLogs">0</div></div>
+                </div>
+                <div class="form-section">
+                    <h2>Quick Actions</h2>
+                    <div style="margin-top: 20px;">
+                        <button onclick="switchTab('employees')" class="btn-primary">Add New Employee</button>
+                        <button onclick="switchTab('leave-requests')" class="btn-primary" style="margin-left: 10px;">Submit Leave Request</button>
+                    </div>
+                </div>
+                <div class="form-section"><h2>Recent Activity</h2><div id="recentActivityContainer"></div></div>
+            </div>
+
+            <!-- Employees Tab -->
+            <div id="employees" class="tab-content">
+                <div class="form-section">
+                    <h2>Add New Employee</h2>
+                    <form id="employeeForm">
+                        <div class="form-row">
+                            <div class="form-group"><label>Employee Name *</label><input type="text" id="employeeName" required></div>
+                            <div class="form-group"><label>Hire Date *</label><input type="date" id="hireDate" required></div>
+                        </div>
+                        <button type="submit" class="btn-primary">Add Employee</button>
+                    </form>
+                </div>
+                <div class="form-section"><h2>Employee List</h2><div id="employeeListContainer"></div></div>
+            </div>
+
+            <!-- Leave Requests Tab -->
+            <div id="leave-requests" class="tab-content">
+                <div class="form-section">
+                    <h2>Submit Leave Request</h2>
+                    <form id="leaveRequestForm">
+                        <div class="form-group"><label>Employee *</label><select id="requestEmployee" required><option value="">Select an employee</option></select></div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Leave Type *</label><select id="leaveType" required><option value="">Select</option><option value="Casual">Casual</option><option value="Sick">Sick</option><option value="Earned">Earned</option></select></div>
+                            <div class="form-group"><label>Start Date *</label><input type="date" id="startDate" required></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>End Date *</label><input type="date" id="endDate" required></div>
+                            <div class="form-group"><label>Reason *</label><input type="text" id="reason" required></div>
+                        </div>
+                        <div class="form-group"><label>Calculated Days</label><input type="text" id="calculatedDays" readonly value="0 days"></div>
+                        <button type="submit" class="btn-primary">Submit Request</button>
+                    </form>
+                </div>
+                <div class="form-section"><h2>All Leave Requests</h2><div id="leaveRequestsContainer"></div></div>
+            </div>
+
+            <!-- Leave Balance Tab -->
+            <div id="leave-balance" class="tab-content">
+                <div class="form-section"><h2>Leave Balance Summary</h2><div id="leaveBalanceContainer"></div></div>
+            </div>
+
+            <!-- Activity Logs Tab -->
+            <div id="logs" class="tab-content">
+                <div class="form-section"><h2>Activity Logs</h2><div id="activityLogsContainer"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
+
+    <script>
+        // ============ YOUR CREDENTIALS (UPDATED) ============
+        const CONFIG = {
+            CLIENT_ID: '1058574831034-cb30fi18f3f05937969jksvhipso5hav.apps.googleusercontent.com',
+            API_KEY: 'AIzaSyD4oMaBJeXQy8JCpzqcOAJ9HexNAKCPlyY',
+            SPREADSHEET_ID: '1NnOJFFLbPtuPYbI53dXIKA_KezdnxhCiqsPteuvL1Fc',
+            SCOPES: 'https://www.googleapis.com/auth/spreadsheets',
+            SHEET_NAMES: {
+                EMPLOYEES: 'Employees',
+                LEAVE_BALANCE: 'LeaveBalance',
+                LEAVE_REQUESTS: 'LeaveRequests',
+                ACTIVITY_LOGS: 'ActivityLogs'
+            }
+        };
+
+        let accessToken = null;
+        let allEmployees = [], allLeaveRequests = [], allLeaveBalance = [], allActivityLogs = [];
+
+        function showAlert(msg, type) {
+            const container = document.getElementById('alertContainer');
+            const id = 'alert-' + Date.now();
+            container.insertAdjacentHTML('beforeend', `<div id="${id}" class="alert alert-${type}">${msg}</div>`);
+            setTimeout(() => document.getElementById(id)?.remove(), 5000);
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        }
+        window.switchTab = switchTab;
+
+        function calculateLeaveDays(start, end) {
+            let days = 0;
+            for (let d = new Date(start); d <= new Date(end); d.setDate(d.getDate() + 1)) {
+                const day = d.getDay();
+                if (day === 0) continue;
+                days += (day === 6) ? 0.5 : 1;
+            }
+            return days;
+        }
+
+        async function loadSheetsData() {
+            try {
+                const employeesResp = await gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: `${CONFIG.SHEET_NAMES.EMPLOYEES}!A:D` });
+                allEmployees = (employeesResp.result.values || []).slice(1).map(r => ({ id: r[0], name: r[1], hireDate: r[2], status: r[3] })).filter(e => e.name);
+                
+                const balanceResp = await gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: `${CONFIG.SHEET_NAMES.LEAVE_BALANCE}!A:E` });
+                allLeaveBalance = (balanceResp.result.values || []).slice(1).map(r => ({ employeeId: r[0], totalAllotted: parseFloat(r[1])||16, used: parseFloat(r[2])||0, remaining: parseFloat(r[3])||16 }));
+                
+                const requestsResp = await gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: `${CONFIG.SHEET_NAMES.LEAVE_REQUESTS}!A:H` });
+                allLeaveRequests = (requestsResp.result.values || []).slice(1).map(r => ({ id: r[0], employeeId: r[1], type: r[2], startDate: r[3], endDate: r[4], days: parseFloat(r[5])||0, status: r[6], reason: r[7] }));
+                
+                const logsResp = await gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: `${CONFIG.SHEET_NAMES.ACTIVITY_LOGS}!A:D` });
+                allActivityLogs = (logsResp.result.values || []).slice(1).map(r => ({ timestamp: r[0], action: r[1], details: r[2], user: r[3] }));
+                
+                updateUI();
+            } catch(err) { console.error(err); showAlert('Error loading data', 'error'); }
+        }
+
+        function updateUI() {
+            document.getElementById('totalEmployees').innerText = allEmployees.length;
+            document.getElementById('pendingRequests').innerText = allLeaveRequests.filter(r => r.status === 'Pending').length;
+            const now = new Date();
+            const approvedThisMonth = allLeaveRequests.filter(r => r.status === 'Approved' && new Date(r.startDate).getMonth() === now.getMonth()).length;
+            document.getElementById('approvedMonth').innerText = approvedThisMonth;
+            document.getElementById('totalLogs').innerText = allActivityLogs.length;
+            
+            // Employee dropdown
+            const dropdown = document.getElementById('requestEmployee');
+            dropdown.innerHTML = '<option value="">Select Employee</option>';
+            allEmployees.forEach(emp => dropdown.appendChild(new Option(emp.name, emp.id)));
+            
+            // Employee table
+            document.getElementById('employeeListContainer').innerHTML = allEmployees.length ? `<table><thead><tr><th>ID</th><th>Name</th><th>Hire Date</th><th>Status</th></tr></thead><tbody>${allEmployees.map(e => `<tr><td>${e.id}</td><td>${e.name}</td><td>${e.hireDate}</td><td><span class="badge badge-approved">${e.status}</span></td></tr>`).join('')}</tbody></table>` : '<p>No employees</p>';
+            
+            // Leave requests
+            document.getElementById('leaveRequestsContainer').innerHTML = allLeaveRequests.length ? `<table><thead><tr><th>ID</th><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Status</th><th>Actions</th></tr></thead><tbody>${allLeaveRequests.map(r => {
+                const emp = allEmployees.find(e => e.id === r.employeeId);
+                const actions = r.status === 'Pending' ? `<button class="btn-success" onclick="approveRequest('${r.id}')">Approve</button> <button class="btn-danger" onclick="rejectRequest('${r.id}')">Reject</button>` : '';
+                return `<tr><td>${r.id}</td><td>${emp?.name || 'Unknown'}</td><td>${r.type}</td><td>${r.startDate} to ${r.endDate}</td><td>${r.days}</td><td><span class="badge badge-${r.status.toLowerCase()}">${r.status}</span></td><td>${actions}</td></tr>`;
+            }).join('')}</tbody></table>` : '<p>No requests</p>';
+            
+            // Balance
+            document.getElementById('leaveBalanceContainer').innerHTML = allLeaveBalance.length ? `<table><thead><tr><th>Employee</th><th>Allotted</th><th>Used</th><th>Remaining</th></tr></thead><tbody>${allLeaveBalance.map(b => {
+                const emp = allEmployees.find(e => e.id === b.employeeId);
+                return `<tr><td>${emp?.name || 'Unknown'}</td><td>${b.totalAllotted}</td><td>${b.used}</td><td>${b.remaining}</td></tr>`;
+            }).join('')}</tbody></table>` : '<p>No balances</p>';
+            
+            // Activity logs
+            document.getElementById('activityLogsContainer').innerHTML = allActivityLogs.length ? `<table><thead><tr><th>Time</th><th>Action</th><th>Details</th><th>User</th></tr></thead><tbody>${allActivityLogs.slice().reverse().map(l => `<tr><td>${new Date(l.timestamp).toLocaleString()}</td><td>${l.action}</td><td>${l.details}</td><td>${l.user}</td></tr>`).join('')}</tbody></table>` : '<p>No logs</p>';
+            
+            const recent = allActivityLogs.slice(-5).reverse();
+            document.getElementById('recentActivityContainer').innerHTML = recent.length ? `<table><thead><tr><th>Time</th><th>Action</th><th>Details</th></tr></thead><tbody>${recent.map(l => `<tr><td>${new Date(l.timestamp).toLocaleString()}</td><td>${l.action}</td><td>${l.details}</td></tr>`).join('')}</tbody></table>` : '<p>No recent activity</p>';
+        }
+
+        async function logActivity(action, details) {
+            const values = [[new Date().toISOString(), action, details, 'Manager']];
+            await gapi.client.sheets.spreadsheets.values.append({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: `${CONFIG.SHEET_NAMES.ACTIVITY_LOGS}!A:D`, valueInputOption: 'RAW', resource: { values } });
+        }
+
+        window.addEmployee = async function(name, hireDate) {
+            const id = `EMP-${Date.now()}`;
+            await gapi.client.sheets.spreadsheets.values.append({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: `${CONFIG.SHEET_NAMES.EMPLOYEES}!A:D`, valueInputOption: 'RAW', resource: { values: [[id, name, hireDate, 'Active']] } });
+            await gapi.client.sheets.spreadsheets.values.append({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: `${CONFIG.SHEET_NAMES.LEAVE_BALANCE}!A:E`, valueInputOption: 'RAW', resource: { values: [[id, 16, 0, 16, new Date().toISOString()]] } });
+            await logActivity(`Added employee: ${name}`, `ID: ${id}`);
+            showAlert(`Employee ${name} added`, 'success');
+            await loadSheetsData();
+        };
+
+        window.submitLeave = async function(empId, type, start, end, days, reason) {
+            const reqId = `REQ-${Date.now()}`;
+            await gapi.client.sheets.spreadsheets.values.append({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: `${CONFIG.SHEET_NAMES.LEAVE_REQUESTS}!A:H`, valueInputOption: 'RAW', resource: { values: [[reqId, empId, type, start, end, days, 'Pending', reason]] } });
+            const emp = allEmployees.find(e => e.id === empId);
+            await logActivity('Leave request submitted', `${emp?.name} - ${days} days (${type})`);
+            showAlert('Request submitted', 'success');
+            await loadSheetsData();
+        };
+
+        window.approveRequest = async function(reqId) {
+            const req = allLeaveRequests.find(r => r.id === reqId);
+            if(!req) return;
+            const rowIdx = allLeaveRequests.indexOf(req) + 2;
+            await gapi.client.sheets.spreadsheets.values.update({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: `${CONFIG.SHEET_NAMES.LEAVE_REQUESTS}!G${rowIdx}`, valueInputOption: 'RAW', resource: { values: [['Approved']] } });
+            const bal = allLeaveBalance.find(b => b.employeeId === req.employeeId);
+            if(bal) {
+                const newUsed = bal.used + req.days;
+                const newRem = bal.totalAllotted - newUsed;
+                const balRow = allLeaveBalance.indexOf(bal) + 2;
+                await gapi.client.sheets.spreadsheets.values.update({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: `${CONFIG.SHEET_NAMES.LEAVE_BALANCE}!B${balRow}:D${balRow}`, valueInputOption: 'RAW', resource: { values: [[bal.totalAllotted, newUsed, newRem]] } });
+            }
+            await logActivity('Leave approved', `Request ${reqId}`);
+            showAlert('Approved', 'success');
+            await loadSheetsData();
+        };
+
+        window.rejectRequest = async function(reqId) {
+            const req = allLeaveRequests.find(r => r.id === reqId);
+            if(!req) return;
+            const rowIdx = allLeaveRequests.indexOf(req) + 2;
+            await gapi.client.sheets.spreadsheets.values.update({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: `${CONFIG.SHEET_NAMES.LEAVE_REQUESTS}!G${rowIdx}`, valueInputOption: 'RAW', resource: { values: [['Rejected']] } });
+            await logActivity('Leave rejected', `Request ${reqId}`);
+            showAlert('Rejected', 'success');
+            await loadSheetsData();
+        };
+
+        // Authentication
+        function initGoogle() {
+            gapi.load('client', async () => {
+                await gapi.client.init({ apiKey: CONFIG.API_KEY, clientId: CONFIG.CLIENT_ID, scope: CONFIG.SCOPES, discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'] });
+                google.accounts.id.initialize({ client_id: CONFIG.CLIENT_ID, callback: async (resp) => {
+                    const tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CONFIG.CLIENT_ID, scope: CONFIG.SCOPES, callback: (tok) => {
+                        if(tok.access_token) {
+                            gapi.client.setToken({ access_token: tok.access_token });
+                            document.getElementById('authContainer').classList.add('hidden');
+                            document.getElementById('appContainer').classList.remove('hidden');
+                            loadSheetsData();
+                        }
+                    } });
+                    tokenClient.requestAccessToken();
+                } });
+                document.getElementById('loginBtn').onclick = () => google.accounts.id.prompt();
+            });
+        }
+
+        document.getElementById('logoutBtn')?.addEventListener('click', () => {
+            localStorage.clear();
+            document.getElementById('authContainer').classList.remove('hidden');
+            document.getElementById('appContainer').classList.add('hidden');
         });
 
-        console.log(res.result.values);
+        document.getElementById('employeeForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('employeeName').value.trim();
+            const date = document.getElementById('hireDate').value;
+            if(name && date) addEmployee(name, date);
+            else showAlert('Fill all fields', 'error');
+        });
 
-        document.getElementById("status").innerText =
-            "Google Sheets Connected ✔";
+        document.getElementById('leaveRequestForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const empId = document.getElementById('requestEmployee').value;
+            const type = document.getElementById('leaveType').value;
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            const reason = document.getElementById('reason').value;
+            if(!empId || !type || !start || !end || !reason) return showAlert('Complete all fields', 'error');
+            const days = calculateLeaveDays(start, end);
+            const emp = allEmployees.find(e => e.id === empId);
+            const balance = allLeaveBalance.find(b => b.employeeId === empId);
+            if(type !== 'Sick' && balance && days > balance.remaining) return showAlert(`Insufficient balance. Remaining: ${balance.remaining}`, 'error');
+            if(new Date(start) > new Date(end)) return showAlert('End date after start', 'error');
+            const hireDays = (Date.now() - new Date(emp.hireDate)) / (86400000);
+            if(hireDays < 60 && type !== 'Sick') return showAlert('Need 60 days tenure for this leave', 'error');
+            submitLeave(empId, type, start, end, days, reason);
+        });
 
-        log("Sheets OK ✔");
+        document.getElementById('startDate')?.addEventListener('change', () => {
+            const s = document.getElementById('startDate').value, e = document.getElementById('endDate').value;
+            if(s && e) document.getElementById('calculatedDays').value = calculateLeaveDays(s, e) + ' days';
+        });
+        document.getElementById('endDate')?.addEventListener('change', () => {
+            const s = document.getElementById('startDate').value, e = document.getElementById('endDate').value;
+            if(s && e) document.getElementById('calculatedDays').value = calculateLeaveDays(s, e) + ' days';
+        });
 
-    } catch(err){
-        document.getElementById("status").innerText =
-            "Connection failed ❌";
-
-        log("ERROR: " + err.message);
-    }
-}
-</script>
-
+        initGoogle();
+    </script>
 </body>
 </html>
