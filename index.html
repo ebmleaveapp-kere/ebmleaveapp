@@ -1,136 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HR Leave Management System</title>
-
-<style>
-/* ================= YOUR ORIGINAL CSS (UNCHANGED) ================= */
-* { margin:0; padding:0; box-sizing:border-box; }
-
-:root {
-    --primary:#2563eb;
-    --primary-dark:#1e40af;
-    --secondary:#64748b;
-    --success:#16a34a;
-    --danger:#dc2626;
-    --warning:#ea580c;
-    --background:#f8fafc;
-    --surface:#fff;
-    --border:#e2e8f0;
-    --text:#1e293b;
-    --text-muted:#64748b;
-    --shadow:0 1px 3px rgba(0,0,0,0.1);
-    --shadow-lg:0 10px 15px rgba(0,0,0,0.1);
-}
-
-body {
-    font-family: Arial, sans-serif;
-    background: var(--background);
-    color: var(--text);
-}
-
-.container { max-width:1400px; margin:auto; padding:20px; }
-
-.hidden { display:none !important; }
-
-/* (rest of your CSS stays EXACT SAME — omitted for space but unchanged) */
-</style>
-</head>
-
-<body>
-
-<!-- AUTH -->
-<div id="authContainer" style="text-align:center; margin-top:120px;">
-    <h1>HR Leave Management System</h1>
-    <p>Login with Google</p>
-    <button id="loginBtn">Sign In with Google</button>
-</div>
-
-<!-- APP -->
-<div id="appContainer" class="hidden">
-
-<header>
-    <div class="container">
-        <h1>HR Leave System</h1>
-        <button id="logoutBtn">Logout</button>
-    </div>
-</header>
-
-<div class="container">
-
-<!-- DASHBOARD -->
-<div id="dashboard">
-    <h2>Dashboard</h2>
-    <p>Total Employees: <span id="totalEmployees">0</span></p>
-</div>
-
-<!-- EMPLOYEES -->
-<div id="employees">
-    <h2>Add Employee</h2>
-
-    <form id="employeeForm">
-        <input id="employeeName" placeholder="Name" required>
-        <input id="hireDate" type="date" required>
-        <button>Add</button>
-    </form>
-
-    <div id="employeeListContainer"></div>
-</div>
-
-<!-- LEAVE -->
-<div id="leave-requests">
-    <h2>Leave Requests</h2>
-
-    <form id="leaveRequestForm">
-        <select id="requestEmployee"></select>
-        <select id="leaveType">
-            <option value="">Type</option>
-            <option>Casual</option>
-            <option>Sick</option>
-        </select>
-
-        <input type="date" id="startDate">
-        <input type="date" id="endDate">
-        <input id="reason" placeholder="Reason">
-
-        <input id="calculatedDays" readonly>
-
-        <button>Submit</button>
-    </form>
-
-    <div id="leaveRequestsContainer"></div>
-</div>
-
-</div>
-</div>
-
-<!-- GOOGLE API -->
 <script src="https://apis.google.com/js/api.js"></script>
 <script src="https://accounts.google.com/gsi/client"></script>
 
 <script>
-
-/* ================= CONFIG ================= */
 const CONFIG = {
-    CLIENT_ID: "YOUR_CLIENT_ID_HERE",
-    API_KEY: "YOUR_API_KEY_HERE",
-    SPREADSHEET_ID: "YOUR_SHEET_ID",
-    SCOPES: "https://www.googleapis.com/auth/spreadsheets",
-    SHEETS: {
-        EMPLOYEES: "Employees",
-        LEAVE: "LeaveRequests"
+    CLIENT_ID: 'YOUR_CLIENT_ID',
+    API_KEY: 'YOUR_API_KEY',
+    SCOPES: 'https://www.googleapis.com/auth/spreadsheets',
+    SPREADSHEET_ID: 'YOUR_SHEET_ID',
+    SHEET_NAMES: {
+        EMPLOYEES: 'Employees',
+        LEAVE_BALANCE: 'LeaveBalance',
+        LEAVE_REQUESTS: 'LeaveRequests',
+        ACTIVITY_LOGS: 'ActivityLogs'
     }
 };
 
-/* ================= STATE ================= */
-let tokenClient;
 let accessToken = null;
+let tokenClient;
+
 let allEmployees = [];
 let allLeaveRequests = [];
+let allLeaveBalance = [];
+let allActivityLogs = [];
 
-/* ================= INIT ================= */
+/* ================= INIT GOOGLE ================= */
 function initializeGoogle() {
     gapi.load('client', async () => {
         await gapi.client.init({
@@ -144,14 +37,14 @@ function initializeGoogle() {
     });
 }
 
-/* ================= AUTH ================= */
+/* ================= AUTH (FIXED) ================= */
 function setupAuth() {
 
     tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CONFIG.CLIENT_ID,
         scope: CONFIG.SCOPES,
-
         callback: async (tokenResponse) => {
+
             accessToken = tokenResponse.access_token;
 
             gapi.client.setToken({
@@ -163,38 +56,47 @@ function setupAuth() {
         }
     });
 
-    document.getElementById("loginBtn").onclick = () => {
-        tokenClient.requestAccessToken({ prompt: "consent" });
+    document.getElementById('loginBtn').onclick = () => {
+        tokenClient.requestAccessToken({ prompt: 'consent' });
     };
 
-    document.getElementById("logoutBtn").onclick = logout;
+    document.getElementById('logoutBtn').onclick = logout;
 }
 
+/* ================= UI SWITCH ================= */
+function showApp() {
+    document.getElementById('authContainer').classList.add('hidden');
+    document.getElementById('appContainer').classList.remove('hidden');
+}
+
+function showAuth() {
+    document.getElementById('authContainer').classList.remove('hidden');
+    document.getElementById('appContainer').classList.add('hidden');
+}
+
+/* ================= LOGOUT ================= */
 function logout() {
     accessToken = null;
     gapi.client.setToken(null);
-
-    document.getElementById("appContainer").classList.add("hidden");
-    document.getElementById("authContainer").classList.remove("hidden");
-}
-
-/* ================= UI ================= */
-function showApp() {
-    document.getElementById("authContainer").classList.add("hidden");
-    document.getElementById("appContainer").classList.remove("hidden");
+    showAuth();
 }
 
 /* ================= LOAD DATA ================= */
 async function loadAllData() {
     await loadEmployees();
     await loadLeaveRequests();
-    updateUI();
+    await loadLeaveBalance();
+    await loadActivityLogs();
+
+    updateDashboard();
+    updateAllDisplays();
 }
 
+/* ================= SHEETS ================= */
 async function loadEmployees() {
     const res = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: CONFIG.SPREADSHEET_ID,
-        range: CONFIG.SHEETS.EMPLOYEES + "!A:C"
+        range: CONFIG.SHEET_NAMES.EMPLOYEES + "!A:D"
     });
 
     const rows = res.result.values || [];
@@ -202,105 +104,65 @@ async function loadEmployees() {
     allEmployees = rows.slice(1).map(r => ({
         id: r[0],
         name: r[1],
-        hireDate: r[2]
+        hireDate: r[2],
+        status: r[3]
     }));
 }
 
 async function loadLeaveRequests() {
     const res = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: CONFIG.SPREADSHEET_ID,
-        range: CONFIG.SHEETS.LEAVE + "!A:F"
+        range: CONFIG.SHEET_NAMES.LEAVE_REQUESTS + "!A:H"
     });
 
     const rows = res.result.values || [];
 
     allLeaveRequests = rows.slice(1).map(r => ({
         id: r[0],
-        emp: r[1],
+        employeeId: r[1],
         type: r[2],
-        start: r[3],
-        end: r[4],
-        reason: r[5]
+        startDate: r[3],
+        endDate: r[4],
+        days: r[5],
+        status: r[6],
+        reason: r[7]
     }));
 }
 
-/* ================= ADD EMPLOYEE ================= */
-document.getElementById("employeeForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const name = employeeName.value;
-    const date = hireDate.value;
-
-    await gapi.client.sheets.spreadsheets.values.append({
+async function loadLeaveBalance() {
+    const res = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: CONFIG.SPREADSHEET_ID,
-        range: CONFIG.SHEETS.EMPLOYEES + "!A:C",
-        valueInputOption: "RAW",
-        resource: {
-            values: [[Date.now(), name, date]]
-        }
+        range: CONFIG.SHEET_NAMES.LEAVE_BALANCE + "!A:E"
     });
 
-    await loadAllData();
-});
+    const rows = res.result.values || [];
 
-/* ================= LEAVE REQUEST ================= */
-document.getElementById("leaveRequestForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+    allLeaveBalance = rows.slice(1).map(r => ({
+        employeeId: r[0],
+        total: r[1],
+        used: r[2],
+        remaining: r[3]
+    }));
+}
 
-    await gapi.client.sheets.spreadsheets.values.append({
+async function loadActivityLogs() {
+    const res = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: CONFIG.SPREADSHEET_ID,
-        range: CONFIG.SHEETS.LEAVE + "!A:F",
-        valueInputOption: "RAW",
-        resource: {
-            values: [[
-                Date.now(),
-                requestEmployee.value,
-                leaveType.value,
-                startDate.value,
-                endDate.value,
-                reason.value
-            ]]
-        }
+        range: CONFIG.SHEET_NAMES.ACTIVITY_LOGS + "!A:D"
     });
 
-    await loadAllData();
-});
+    const rows = res.result.values || [];
 
-/* ================= CALC DAYS ================= */
-startDate.onchange = endDate.onchange = () => {
-    const s = new Date(startDate.value);
-    const e = new Date(endDate.value);
-
-    if (s && e) {
-        calculatedDays.value =
-            Math.ceil((e - s) / (1000*60*60*24)) + 1;
-    }
-};
-
-/* ================= UI UPDATE ================= */
-function updateUI() {
-
-    totalEmployees.textContent = allEmployees.length;
-
-    employeeListContainer.innerHTML =
-        allEmployees.map(e =>
-            `<p>${e.name}</p>`
-        ).join("");
-
-    requestEmployee.innerHTML =
-        allEmployees.map(e =>
-            `<option value="${e.id}">${e.name}</option>`
-        ).join("");
-
-    leaveRequestsContainer.innerHTML =
-        allLeaveRequests.map(r =>
-            `<p>${r.type} - ${r.start}</p>`
-        ).join("");
+    allActivityLogs = rows.slice(1).map(r => ({
+        time: r[0],
+        action: r[1],
+        details: r[2],
+        user: r[3]
+    }));
 }
 
 /* ================= START ================= */
-initializeGoogle();
-
+document.addEventListener('DOMContentLoaded', () => {
+    initializeGoogle();
+});
 </script>
-</body>
-</html>
