@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HR Leave Management System | Professional Dashboard</title>
+    <title>HR Leave Management System</title>
     <style>
         * {
             margin: 0;
@@ -12,33 +12,30 @@
         }
 
         :root {
-            --primary-dark: #0f1720;
-            --primary-green: #10b981;
-            --primary-green-dark: #059669;
-            --primary-green-light: #34d399;
-            --surface-dark: #1a2634;
-            --surface-card: #1e2a3a;
-            --surface-hover: #2d3a4a;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --border-dark: #2d3a4a;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --info: #3b82f6;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            --primary-dark: #1a472a;
+            --primary: #2d6a4f;
+            --primary-light: #40916c;
+            --accent: #52b788;
+            --success: #2d6a4f;
+            --danger: #dc2f02;
+            --warning: #e85d04;
+            --info: #1b4332;
+            --background: #ffffff;
+            --surface: #ffffff;
+            --border: #e9ecef;
+            --text-primary: #212529;
+            --text-secondary: #495057;
+            --text-muted: #6c757d;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.05);
             --radius-sm: 0.375rem;
             --radius-md: 0.5rem;
             --radius-lg: 0.75rem;
-            --transition: all 0.2s ease;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--primary-dark);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background-color: var(--background);
             color: var(--text-primary);
             line-height: 1.5;
             height: 100vh;
@@ -55,8 +52,8 @@
         /* Sidebar Navigation */
         .sidebar {
             width: 280px;
-            background: linear-gradient(180deg, var(--surface-dark) 0%, var(--primary-dark) 100%);
-            border-right: 1px solid var(--border-dark);
+            background: var(--surface);
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             position: fixed;
@@ -64,11 +61,12 @@
             left: 0;
             top: 0;
             z-index: 10;
+            box-shadow: var(--shadow);
         }
 
         .sidebar-header {
             padding: 1.75rem 1.5rem;
-            border-bottom: 1px solid var(--border-dark);
+            border-bottom: 1px solid var(--border);
             margin-bottom: 1.5rem;
         }
 
@@ -76,10 +74,7 @@
             font-size: 1.25rem;
             font-weight: 700;
             letter-spacing: -0.01em;
-            background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-light) 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            color: var(--primary);
         }
 
         .sidebar-header p {
@@ -107,8 +102,9 @@
             cursor: pointer;
             font-size: 0.875rem;
             font-weight: 500;
-            transition: var(--transition);
+            transition: all 0.2s ease;
             text-align: left;
+            font-family: inherit;
         }
 
         .nav-item svg {
@@ -122,19 +118,19 @@
         }
 
         .nav-item:hover {
-            background-color: var(--surface-hover);
-            color: var(--text-primary);
+            background-color: #f8f9fa;
+            color: var(--primary);
         }
 
         .nav-item.active {
-            background-color: rgba(16, 185, 129, 0.1);
-            color: var(--primary-green);
-            border-left: 3px solid var(--primary-green);
+            background-color: rgba(45, 106, 79, 0.08);
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
         }
 
         .sidebar-footer {
             padding: 1.5rem;
-            border-top: 1px solid var(--border-dark);
+            border-top: 1px solid var(--border);
         }
 
         .logout-btn {
@@ -150,11 +146,12 @@
             cursor: pointer;
             font-size: 0.875rem;
             font-weight: 500;
-            transition: var(--transition);
+            transition: all 0.2s ease;
+            font-family: inherit;
         }
 
         .logout-btn:hover {
-            background-color: rgba(239, 68, 68, 0.1);
+            background-color: #fff5f5;
             color: var(--danger);
         }
 
@@ -164,7 +161,7 @@
             margin-left: 280px;
             overflow-y: auto;
             padding: 2rem;
-            background-color: var(--primary-dark);
+            background-color: #f8f9fa;
         }
 
         /* Auth Container */
@@ -173,27 +170,24 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--surface-dark) 100%);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         }
 
         .auth-card {
-            background: var(--surface-card);
+            background: var(--surface);
             padding: 2.5rem;
             border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
             text-align: center;
             max-width: 420px;
             width: 90%;
-            border: 1px solid var(--border-dark);
+            border: 1px solid var(--border);
         }
 
         .auth-card h1 {
             font-size: 1.5rem;
             margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-light) 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            color: var(--primary);
         }
 
         .auth-card p {
@@ -204,21 +198,23 @@
 
         /* Cards & Tables */
         .card {
-            background: var(--surface-card);
+            background: var(--surface);
             border-radius: var(--radius-lg);
-            border: 1px solid var(--border-dark);
+            border: 1px solid var(--border);
             margin-bottom: 1.5rem;
             overflow: hidden;
+            box-shadow: var(--shadow);
         }
 
         .card-header {
             padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid var(--border-dark);
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 1rem;
+            background: #fafbfc;
         }
 
         .card-header h2 {
@@ -238,7 +234,7 @@
         }
 
         .data-table thead tr {
-            border-bottom: 1px solid var(--border-dark);
+            border-bottom: 1px solid var(--border);
         }
 
         .data-table th {
@@ -249,18 +245,18 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--text-muted);
-            background-color: rgba(0, 0, 0, 0.2);
+            background-color: #fafbfc;
         }
 
         .data-table td {
             padding: 1rem;
             font-size: 0.875rem;
             color: var(--text-secondary);
-            border-bottom: 1px solid var(--border-dark);
+            border-bottom: 1px solid var(--border);
         }
 
         .data-table tbody tr:hover {
-            background-color: var(--surface-hover);
+            background-color: #f8f9fa;
         }
 
         .data-table tbody tr:last-child td {
@@ -278,22 +274,22 @@
         }
 
         .badge-pending {
-            background-color: rgba(245, 158, 11, 0.1);
+            background-color: #fff3e0;
             color: var(--warning);
         }
 
         .badge-approved {
-            background-color: rgba(16, 185, 129, 0.1);
+            background-color: #e8f5e9;
             color: var(--success);
         }
 
         .badge-rejected {
-            background-color: rgba(239, 68, 68, 0.1);
+            background-color: #ffe5e5;
             color: var(--danger);
         }
 
         .badge-active {
-            background-color: rgba(16, 185, 129, 0.1);
+            background-color: #e8f5e9;
             color: var(--success);
         }
 
@@ -304,37 +300,38 @@
             font-size: 0.8125rem;
             font-weight: 500;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all 0.2s ease;
             border: none;
+            font-family: inherit;
         }
 
         .btn-primary {
-            background-color: var(--primary-green);
+            background-color: var(--primary);
             color: white;
         }
 
         .btn-primary:hover {
-            background-color: var(--primary-green-dark);
+            background-color: var(--primary-dark);
         }
 
         .btn-success {
-            background-color: rgba(16, 185, 129, 0.1);
+            background-color: #e8f5e9;
             color: var(--success);
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            border: 1px solid #c8e6c9;
         }
 
         .btn-success:hover {
-            background-color: rgba(16, 185, 129, 0.2);
+            background-color: #c8e6c9;
         }
 
         .btn-danger {
-            background-color: rgba(239, 68, 68, 0.1);
+            background-color: #ffe5e5;
             color: var(--danger);
-            border: 1px solid rgba(239, 68, 68, 0.3);
+            border: 1px solid #ffcdd2;
         }
 
         .btn-danger:hover {
-            background-color: rgba(239, 68, 68, 0.2);
+            background-color: #ffcdd2;
         }
 
         /* Forms */
@@ -354,19 +351,20 @@
         .form-group select {
             width: 100%;
             padding: 0.625rem 0.875rem;
-            background-color: var(--primary-dark);
-            border: 1px solid var(--border-dark);
+            background-color: var(--surface);
+            border: 1px solid var(--border);
             border-radius: var(--radius-sm);
             color: var(--text-primary);
             font-size: 0.875rem;
-            transition: var(--transition);
+            transition: all 0.2s ease;
+            font-family: inherit;
         }
 
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: var(--primary-green);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
         }
 
         .form-row {
@@ -384,10 +382,11 @@
         }
 
         .stat-card {
-            background: var(--surface-card);
-            border: 1px solid var(--border-dark);
+            background: var(--surface);
+            border: 1px solid var(--border);
             border-radius: var(--radius-lg);
-            padding: 1.25rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
         }
 
         .stat-card h3 {
@@ -402,7 +401,7 @@
         .stat-card .value {
             font-size: 2rem;
             font-weight: 700;
-            color: var(--primary-green);
+            color: var(--primary);
         }
 
         /* Alerts */
@@ -414,34 +413,56 @@
         }
 
         .alert-success {
-            background-color: rgba(16, 185, 129, 0.1);
+            background-color: #e8f5e9;
             border-left-color: var(--success);
             color: var(--success);
         }
 
         .alert-error {
-            background-color: rgba(239, 68, 68, 0.1);
+            background-color: #ffe5e5;
             border-left-color: var(--danger);
             color: var(--danger);
         }
 
+        .alert-warning {
+            background-color: #fff3e0;
+            border-left-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .alert-info {
+            background-color: #e3f2fd;
+            border-left-color: var(--info);
+            color: var(--info);
+        }
+
         /* Scrollbar */
         .main-content::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
         }
 
         .main-content::-webkit-scrollbar-track {
-            background: var(--primary-dark);
+            background: #f1f1f1;
         }
 
         .main-content::-webkit-scrollbar-thumb {
-            background: var(--surface-hover);
-            border-radius: 3px;
+            background: var(--primary-light);
+            border-radius: 4px;
         }
 
         /* Hidden */
         .hidden {
             display: none !important;
+        }
+
+        .text-secondary {
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
         }
 
         @media (max-width: 768px) {
@@ -471,7 +492,7 @@
         <div class="auth-card">
             <h1>HR Leave Management</h1>
             <p>Connect with Google Sheets to manage employee leave requests</p>
-            <button id="loginBtn" class="btn btn-primary" style="width: 100%;">Sign in with Google</button>
+            <button id="loginBtn" class="btn btn-primary" style="width: 100%; padding: 0.75rem;">Sign in with Google</button>
             <div id="errorMessage" style="margin-top: 1rem; font-size: 0.75rem; color: var(--danger);"></div>
         </div>
     </div>
@@ -533,7 +554,7 @@
                     <div class="card">
                         <div class="card-header">
                             <h2>Recent Activity</h2>
-                            <button onclick="switchToTab('logs')" class="btn btn-primary">View All</button>
+                            <button onclick="switchToTab('logs')" class="btn btn-primary">View All Logs</button>
                         </div>
                         <div class="card-body">
                             <div class="table-wrapper" id="recentActivityContainer"></div>
@@ -579,7 +600,7 @@
                                     <div class="form-group"><label>End Date</label><input type="date" id="endDate" required></div>
                                     <div class="form-group"><label>Reason</label><input type="text" id="reason" required placeholder="Reason for leave"></div>
                                 </div>
-                                <div class="form-group"><label>Calculated Days</label><input type="text" id="calculatedDays" readonly value="0 days" style="background: var(--primary-dark);"></div>
+                                <div class="form-group"><label>Calculated Days</label><input type="text" id="calculatedDays" readonly value="0 days" style="background: #f8f9fa;"></div>
                                 <button type="submit" class="btn btn-primary">Submit Request</button>
                             </form>
                         </div>
@@ -634,18 +655,40 @@
 
         // ============ TAB NAVIGATION ============
         function switchToTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            document.querySelector(`.nav-item[data-tab="${tabName}"]`).classList.add('active');
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            const selectedTab = document.getElementById(tabName);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            }
+            
+            // Add active class to clicked button
+            const selectedButton = document.querySelector(`.nav-item[data-tab="${tabName}"]`);
+            if (selectedButton) {
+                selectedButton.classList.add('active');
+            }
         }
-        window.switchToTab = switchToTab;
 
         function initTabListeners() {
-            document.querySelectorAll('.nav-item').forEach(btn => {
-                btn.addEventListener('click', () => switchToTab(btn.getAttribute('data-tab')));
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    switchToTab(tabName);
+                });
             });
         }
+
+        window.switchToTab = switchToTab;
 
         // ============ UI HELPERS ============
         function showAlert(message, type) {
@@ -657,9 +700,15 @@
 
         function calculateLeaveDays(start, end) {
             let days = 0;
-            for (let d = new Date(start); d <= new Date(end); d.setDate(d.getDate() + 1)) {
-                const day = d.getDay();
-                if (day !== 0) days += (day === 6) ? 0.5 : 1;
+            let currentDate = new Date(start);
+            let endDate = new Date(end);
+            
+            while (currentDate <= endDate) {
+                const dayOfWeek = currentDate.getDay();
+                if (dayOfWeek !== 0) {
+                    days += (dayOfWeek === 6) ? 0.5 : 1;
+                }
+                currentDate.setDate(currentDate.getDate() + 1);
             }
             return days;
         }
@@ -667,27 +716,69 @@
         // ============ DATA LOADING ============
         async function loadAllData() {
             if (!isAuthenticated) return;
+            
             try {
-                const empResp = await gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: 'Employees!A:D' });
-                allEmployees = (empResp.result.values || []).slice(1).map(r => ({ id: r[0], name: r[1], hireDate: r[2], status: r[3] || 'Active' })).filter(e => e.name);
+                // Load Employees
+                const empResp = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: CONFIG.SPREADSHEET_ID,
+                    range: 'Employees!A:D'
+                });
+                allEmployees = (empResp.result.values || []).slice(1).map(r => ({ 
+                    id: r[0], 
+                    name: r[1], 
+                    hireDate: r[2], 
+                    status: r[3] || 'Active' 
+                })).filter(e => e.name);
 
-                const balResp = await gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: 'LeaveBalance!A:E' });
-                allLeaveBalance = (balResp.result.values || []).slice(1).map(r => ({ employeeId: r[0], totalAllotted: parseFloat(r[1])||16, used: parseFloat(r[2])||0, remaining: parseFloat(r[3])||16 }));
+                // Load Leave Balance
+                const balResp = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: CONFIG.SPREADSHEET_ID,
+                    range: 'LeaveBalance!A:E'
+                });
+                allLeaveBalance = (balResp.result.values || []).slice(1).map(r => ({ 
+                    employeeId: r[0], 
+                    totalAllotted: parseFloat(r[1]) || 16, 
+                    used: parseFloat(r[2]) || 0, 
+                    remaining: parseFloat(r[3]) || 16 
+                }));
 
-                const reqResp = await gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: 'LeaveRequests!A:H' });
-                allLeaveRequests = (reqResp.result.values || []).slice(1).map(r => ({ id: r[0], employeeId: r[1], type: r[2], startDate: r[3], endDate: r[4], days: parseFloat(r[5])||0, status: r[6] || 'Pending', reason: r[7] }));
+                // Load Leave Requests
+                const reqResp = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: CONFIG.SPREADSHEET_ID,
+                    range: 'LeaveRequests!A:H'
+                });
+                allLeaveRequests = (reqResp.result.values || []).slice(1).map(r => ({ 
+                    id: r[0], 
+                    employeeId: r[1], 
+                    type: r[2], 
+                    startDate: r[3], 
+                    endDate: r[4], 
+                    days: parseFloat(r[5]) || 0, 
+                    status: r[6] || 'Pending', 
+                    reason: r[7] 
+                }));
 
-                const logResp = await gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: 'ActivityLogs!A:D' });
-                allActivityLogs = (logResp.result.values || []).slice(1).map(r => ({ timestamp: r[0], action: r[1], details: r[2], user: r[3] }));
+                // Load Activity Logs
+                const logResp = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: CONFIG.SPREADSHEET_ID,
+                    range: 'ActivityLogs!A:D'
+                });
+                allActivityLogs = (logResp.result.values || []).slice(1).map(r => ({ 
+                    timestamp: r[0], 
+                    action: r[1], 
+                    details: r[2], 
+                    user: r[3] 
+                }));
 
                 updateUI();
             } catch (error) {
-                console.error(error);
+                console.error('Error loading data:', error);
                 showAlert('Error loading data: ' + error.message, 'error');
             }
         }
 
         function updateUI() {
+            // Update dashboard stats
             document.getElementById('totalEmployees').innerText = allEmployees.length;
             document.getElementById('pendingRequests').innerText = allLeaveRequests.filter(r => r.status === 'Pending').length;
             const now = new Date();
@@ -695,33 +786,53 @@
             document.getElementById('approvedMonth').innerText = approvedThisMonth;
             document.getElementById('totalLogs').innerText = allActivityLogs.length;
 
-            // Employee dropdown
+            // Update employee dropdown
             const dropdown = document.getElementById('requestEmployee');
             if (dropdown) {
                 dropdown.innerHTML = '<option value="">Select employee</option>';
-                allEmployees.forEach(emp => dropdown.appendChild(new Option(emp.name, emp.id)));
+                allEmployees.forEach(emp => {
+                    const option = document.createElement('option');
+                    option.value = emp.id;
+                    option.textContent = emp.name;
+                    dropdown.appendChild(option);
+                });
             }
 
             // Employee Table
             const empContainer = document.getElementById('employeeListContainer');
-            if (allEmployees.length === 0) empContainer.innerHTML = '<p class="text-secondary">No employees found</p>';
-            else {
+            if (allEmployees.length === 0) {
+                empContainer.innerHTML = '<div class="text-secondary">No employees found</div>';
+            } else {
                 let html = '<table class="data-table"><thead><tr><th>ID</th><th>Name</th><th>Hire Date</th><th>Status</th></tr></thead><tbody>';
-                allEmployees.forEach(emp => html += `<tr><td>${emp.id}</td><td>${emp.name}</td><td>${emp.hireDate}</td><td><span class="badge badge-active">${emp.status}</span></td></tr>`);
+                allEmployees.forEach(emp => {
+                    html += `<tr><td>${emp.id}</td><td><strong>${emp.name}</strong></td><td>${emp.hireDate}</td><td><span class="badge badge-active">${emp.status}</span></td></tr>`;
+                });
                 html += '</tbody></table>';
                 empContainer.innerHTML = html;
             }
 
             // Leave Requests Table
             const reqContainer = document.getElementById('leaveRequestsContainer');
-            if (allLeaveRequests.length === 0) reqContainer.innerHTML = '<p class="text-secondary">No leave requests</p>';
-            else {
+            if (allLeaveRequests.length === 0) {
+                reqContainer.innerHTML = '<div class="text-secondary">No leave requests found</div>';
+            } else {
                 let html = '<table class="data-table"><thead><tr><th>ID</th><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
                 allLeaveRequests.forEach(req => {
                     const emp = allEmployees.find(e => e.id === req.employeeId);
                     const badgeClass = req.status === 'Pending' ? 'badge-pending' : (req.status === 'Approved' ? 'badge-approved' : 'badge-rejected');
-                    const actions = req.status === 'Pending' ? `<button class="btn btn-success" onclick="approveRequest('${req.id}')" style="margin-right:5px">Approve</button><button class="btn btn-danger" onclick="rejectRequest('${req.id}')">Reject</button>` : '-';
-                    html += `<tr><td>${req.id}</td><td>${emp?.name || 'Unknown'}</td><td>${req.type}</td><td>${req.startDate} → ${req.endDate}</td><td>${req.days}</td><td><span class="badge ${badgeClass}">${req.status}</span></td><td>${actions}</td></tr>`;
+                    const actions = req.status === 'Pending' ? 
+                        `<button class="btn btn-success" onclick="approveRequest('${req.id}')" style="margin-right:5px">Approve</button>
+                         <button class="btn btn-danger" onclick="rejectRequest('${req.id}')">Reject</button>` : 
+                        '<span style="color: var(--text-muted);">—</span>';
+                    html += `<tr>
+                        <td>${req.id}</td>
+                        <td><strong>${emp?.name || 'Unknown'}</strong></td>
+                        <td>${req.type}</td>
+                        <td>${req.startDate} → ${req.endDate}</td>
+                        <td>${req.days}</td>
+                        <td><span class="badge ${badgeClass}">${req.status}</span></td>
+                        <td>${actions}</td>
+                    </tr>`;
                 });
                 html += '</tbody></table>';
                 reqContainer.innerHTML = html;
@@ -729,34 +840,55 @@
 
             // Balance Table
             const balContainer = document.getElementById('leaveBalanceContainer');
-            if (allLeaveBalance.length === 0) balContainer.innerHTML = '<p class="text-secondary">No balance data</p>';
-            else {
+            if (allLeaveBalance.length === 0) {
+                balContainer.innerHTML = '<div class="text-secondary">No balance data available</div>';
+            } else {
                 let html = '<table class="data-table"><thead><tr><th>Employee</th><th>Total Allotted</th><th>Used</th><th>Remaining</th></tr></thead><tbody>';
                 allLeaveBalance.forEach(bal => {
                     const emp = allEmployees.find(e => e.id === bal.employeeId);
-                    html += `<tr><td>${emp?.name || 'Unknown'}</td><td>${bal.totalAllotted} days</td><td>${bal.used} days</td><td><strong style="color: var(--primary-green);">${bal.remaining} days</strong></td></tr>`;
+                    html += `<tr>
+                        <td><strong>${emp?.name || 'Unknown'}</strong></td>
+                        <td>${bal.totalAllotted} days</td>
+                        <td>${bal.used} days</td>
+                        <td><strong style="color: var(--primary);">${bal.remaining} days</strong></td>
+                    </tr>`;
                 });
                 html += '</tbody></table>';
                 balContainer.innerHTML = html;
             }
 
-            // Logs Table
+            // Activity Logs Table
             const logContainer = document.getElementById('activityLogsContainer');
-            if (allActivityLogs.length === 0) logContainer.innerHTML = '<p class="text-secondary">No activity logs</p>';
-            else {
+            if (allActivityLogs.length === 0) {
+                logContainer.innerHTML = '<div class="text-secondary">No activity logs found</div>';
+            } else {
                 let html = '<table class="data-table"><thead><tr><th>Timestamp</th><th>Action</th><th>Details</th><th>User</th></tr></thead><tbody>';
-                allActivityLogs.slice().reverse().slice(0, 100).forEach(log => html += `<tr><td>${new Date(log.timestamp).toLocaleString()}</td><td>${log.action}</td><td>${log.details}</td><td>${log.user}</td></tr>`);
+                allActivityLogs.slice().reverse().forEach(log => {
+                    html += `<tr>
+                        <td>${new Date(log.timestamp).toLocaleString()}</td>
+                        <td><strong>${log.action}</strong></td>
+                        <td>${log.details}</td>
+                        <td>${log.user}</td>
+                    </tr>`;
+                });
                 html += '</tbody></table>';
                 logContainer.innerHTML = html;
             }
 
-            // Recent Activity
+            // Recent Activity (for dashboard)
             const recentContainer = document.getElementById('recentActivityContainer');
             const recent = allActivityLogs.slice(-5).reverse();
-            if (recent.length === 0) recentContainer.innerHTML = '<p class="text-secondary">No recent activity</p>';
-            else {
+            if (recent.length === 0) {
+                recentContainer.innerHTML = '<div class="text-secondary">No recent activity</div>';
+            } else {
                 let html = '<table class="data-table"><thead><tr><th>Time</th><th>Action</th><th>Details</th></tr></thead><tbody>';
-                recent.forEach(log => html += `<tr><td>${new Date(log.timestamp).toLocaleString()}</td><td>${log.action}</td><td>${log.details}</td></tr>`);
+                recent.forEach(log => {
+                    html += `<tr>
+                        <td>${new Date(log.timestamp).toLocaleString()}</td>
+                        <td><strong>${log.action}</strong></td>
+                        <td>${log.details}</td>
+                    </tr>`;
+                });
                 html += '</tbody></table>';
                 recentContainer.innerHTML = html;
             }
@@ -766,72 +898,119 @@
         async function logActivity(action, details) {
             try {
                 await gapi.client.sheets.spreadsheets.values.append({
-                    spreadsheetId: CONFIG.SPREADSHEET_ID, range: 'ActivityLogs!A:D',
-                    valueInputOption: 'RAW', resource: { values: [[new Date().toISOString(), action, details, 'Manager']] }
+                    spreadsheetId: CONFIG.SPREADSHEET_ID,
+                    range: 'ActivityLogs!A:D',
+                    valueInputOption: 'RAW',
+                    resource: { values: [[new Date().toISOString(), action, details, 'Manager']] }
                 });
-            } catch (error) { console.error(error); }
+            } catch (error) {
+                console.error('Error logging activity:', error);
+            }
         }
 
-        window.addEmployee = async (name, hireDate) => {
+        window.addEmployee = async function(name, hireDate) {
             const id = `EMP-${Date.now()}`;
             try {
-                await gapi.client.sheets.spreadsheets.values.append({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: 'Employees!A:D', valueInputOption: 'RAW', resource: { values: [[id, name, hireDate, 'Active']] } });
-                await gapi.client.sheets.spreadsheets.values.append({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: 'LeaveBalance!A:E', valueInputOption: 'RAW', resource: { values: [[id, 16, 0, 16, new Date().toISOString()]] } });
+                await gapi.client.sheets.spreadsheets.values.append({
+                    spreadsheetId: CONFIG.SPREADSHEET_ID,
+                    range: 'Employees!A:D',
+                    valueInputOption: 'RAW',
+                    resource: { values: [[id, name, hireDate, 'Active']] }
+                });
+                await gapi.client.sheets.spreadsheets.values.append({
+                    spreadsheetId: CONFIG.SPREADSHEET_ID,
+                    range: 'LeaveBalance!A:E',
+                    valueInputOption: 'RAW',
+                    resource: { values: [[id, 16, 0, 16, new Date().toISOString()]] }
+                });
                 await logActivity(`Added employee: ${name}`, `ID: ${id}`);
                 showAlert(`Employee "${name}" added successfully`, 'success');
                 await loadAllData();
-            } catch (error) { showAlert('Error adding employee', 'error'); }
+            } catch (error) {
+                showAlert('Error adding employee', 'error');
+            }
         };
 
-        window.submitLeave = async (empId, type, start, end, days, reason) => {
+        window.submitLeave = async function(empId, type, start, end, days, reason) {
             const reqId = `REQ-${Date.now()}`;
             try {
-                await gapi.client.sheets.spreadsheets.values.append({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: 'LeaveRequests!A:H', valueInputOption: 'RAW', resource: { values: [[reqId, empId, type, start, end, days, 'Pending', reason]] } });
-                await logActivity('Leave request submitted', `Request ID: ${reqId}`);
-                showAlert('Leave request submitted', 'success');
+                await gapi.client.sheets.spreadsheets.values.append({
+                    spreadsheetId: CONFIG.SPREADSHEET_ID,
+                    range: 'LeaveRequests!A:H',
+                    valueInputOption: 'RAW',
+                    resource: { values: [[reqId, empId, type, start, end, days, 'Pending', reason]] }
+                });
+                const emp = allEmployees.find(e => e.id === empId);
+                await logActivity('Leave request submitted', `${emp?.name} - ${days} days (${type})`);
+                showAlert('Leave request submitted successfully', 'success');
                 await loadAllData();
-            } catch (error) { showAlert('Error submitting request', 'error'); }
+            } catch (error) {
+                showAlert('Error submitting request', 'error');
+            }
         };
 
-        window.approveRequest = async (reqId) => {
+        window.approveRequest = async function(reqId) {
             const req = allLeaveRequests.find(r => r.id === reqId);
             if (!req) return;
             try {
                 const rowIdx = allLeaveRequests.findIndex(r => r.id === reqId) + 2;
-                await gapi.client.sheets.spreadsheets.values.update({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: `LeaveRequests!G${rowIdx}`, valueInputOption: 'RAW', resource: { values: [['Approved']] } });
+                await gapi.client.sheets.spreadsheets.values.update({
+                    spreadsheetId: CONFIG.SPREADSHEET_ID,
+                    range: `LeaveRequests!G${rowIdx}`,
+                    valueInputOption: 'RAW',
+                    resource: { values: [['Approved']] }
+                });
                 const bal = allLeaveBalance.find(b => b.employeeId === req.employeeId);
                 if (bal) {
                     const newUsed = bal.used + req.days;
                     const newRem = bal.totalAllotted - newUsed;
                     const balRow = allLeaveBalance.findIndex(b => b.employeeId === req.employeeId) + 2;
-                    await gapi.client.sheets.spreadsheets.values.update({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: `LeaveBalance!B${balRow}:D${balRow}`, valueInputOption: 'RAW', resource: { values: [[bal.totalAllotted, newUsed, newRem]] } });
+                    await gapi.client.sheets.spreadsheets.values.update({
+                        spreadsheetId: CONFIG.SPREADSHEET_ID,
+                        range: `LeaveBalance!B${balRow}:D${balRow}`,
+                        valueInputOption: 'RAW',
+                        resource: { values: [[bal.totalAllotted, newUsed, newRem]] }
+                    });
                 }
                 await logActivity('Leave request approved', `Request ID: ${reqId}`);
-                showAlert('Request approved', 'success');
+                showAlert('Leave request approved', 'success');
                 await loadAllData();
-            } catch (error) { showAlert('Error approving request', 'error'); }
+            } catch (error) {
+                showAlert('Error approving request', 'error');
+            }
         };
 
-        window.rejectRequest = async (reqId) => {
+        window.rejectRequest = async function(reqId) {
             const req = allLeaveRequests.find(r => r.id === reqId);
             if (!req) return;
             try {
                 const rowIdx = allLeaveRequests.findIndex(r => r.id === reqId) + 2;
-                await gapi.client.sheets.spreadsheets.values.update({ spreadsheetId: CONFIG.SPREADSHEET_ID, range: `LeaveRequests!G${rowIdx}`, valueInputOption: 'RAW', resource: { values: [['Rejected']] } });
+                await gapi.client.sheets.spreadsheets.values.update({
+                    spreadsheetId: CONFIG.SPREADSHEET_ID,
+                    range: `LeaveRequests!G${rowIdx}`,
+                    valueInputOption: 'RAW',
+                    resource: { values: [['Rejected']] }
+                });
                 await logActivity('Leave request rejected', `Request ID: ${reqId}`);
-                showAlert('Request rejected', 'warning');
+                showAlert('Leave request rejected', 'warning');
                 await loadAllData();
-            } catch (error) { showAlert('Error rejecting request', 'error'); }
+            } catch (error) {
+                showAlert('Error rejecting request', 'error');
+            }
         };
 
         // ============ AUTHENTICATION ============
         function initializeGapiClient() {
-            return gapi.client.init({ apiKey: CONFIG.API_KEY, discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'] });
+            return gapi.client.init({
+                apiKey: CONFIG.API_KEY,
+                discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+            });
         }
 
         function initializeGisClient() {
             tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: CONFIG.CLIENT_ID, scope: CONFIG.SCOPES,
+                client_id: CONFIG.CLIENT_ID,
+                scope: CONFIG.SCOPES,
                 callback: async (tokenResponse) => {
                     if (tokenResponse.access_token) {
                         gapi.client.setToken({ access_token: tokenResponse.access_token });
@@ -839,29 +1018,48 @@
                         document.getElementById('authContainer').classList.add('hidden');
                         document.getElementById('appContainer').classList.remove('hidden');
                         initTabListeners();
-                        switchToTab('dashboard');
                         await loadAllData();
-                        showAlert('Connected to Google Sheets', 'success');
+                        switchToTab('dashboard');
+                        showAlert('Successfully connected to Google Sheets', 'success');
+                    } else {
+                        document.getElementById('errorMessage').innerText = 'Authentication failed. Please try again.';
                     }
-                }
+                },
             });
         }
 
-        document.getElementById('loginBtn')?.addEventListener('click', () => tokenClient?.requestAccessToken());
+        // Event Listeners
+        document.getElementById('loginBtn')?.addEventListener('click', () => {
+            if (tokenClient) {
+                tokenClient.requestAccessToken();
+            } else {
+                document.getElementById('errorMessage').innerText = 'Initializing, please wait...';
+                setTimeout(() => {
+                    if (tokenClient) tokenClient.requestAccessToken();
+                }, 1000);
+            }
+        });
+
         document.getElementById('logoutBtn')?.addEventListener('click', () => {
             isAuthenticated = false;
-            gapi.client.setToken(null);
+            if (gapi.client) {
+                gapi.client.setToken(null);
+            }
             document.getElementById('authContainer').classList.remove('hidden');
             document.getElementById('appContainer').classList.add('hidden');
+            showAlert('Logged out successfully', 'info');
         });
 
         document.getElementById('employeeForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('employeeName').value.trim();
             const hireDate = document.getElementById('hireDate').value;
-            if (!name || !hireDate) return showAlert('Fill all fields', 'error');
+            if (!name || !hireDate) {
+                showAlert('Please fill all fields', 'error');
+                return;
+            }
             await addEmployee(name, hireDate);
-            e.target.reset();
+            document.getElementById('employeeForm').reset();
         });
 
         document.getElementById('leaveRequestForm')?.addEventListener('submit', async (e) => {
@@ -871,28 +1069,64 @@
             const start = document.getElementById('startDate').value;
             const end = document.getElementById('endDate').value;
             const reason = document.getElementById('reason').value;
-            if (!empId || !type || !start || !end || !reason) return showAlert('Fill all fields', 'error');
+            
+            if (!empId || !type || !start || !end || !reason) {
+                showAlert('Please fill all fields', 'error');
+                return;
+            }
+            
             const days = calculateLeaveDays(start, end);
             const emp = allEmployees.find(e => e.id === empId);
             const balance = allLeaveBalance.find(b => b.employeeId === empId);
-            if (new Date(start) > new Date(end)) return showAlert('End date must be after start', 'error');
-            if (type !== 'Sick' && balance && days > balance.remaining) return showAlert(`Insufficient balance: ${balance.remaining} days left`, 'error');
-            if (emp && emp.hireDate && (Date.now() - new Date(emp.hireDate).getTime()) / 86400000 < 60 && type !== 'Sick') return showAlert('Employee needs 60 days tenure for regular leave', 'error');
+            
+            if (new Date(start) > new Date(end)) {
+                showAlert('End date must be after start date', 'error');
+                return;
+            }
+            
+            if (type !== 'Sick' && balance && days > balance.remaining) {
+                showAlert(`Insufficient leave balance. Remaining: ${balance.remaining} days`, 'error');
+                return;
+            }
+            
+            if (emp && emp.hireDate) {
+                const hireDays = (Date.now() - new Date(emp.hireDate).getTime()) / (1000 * 60 * 60 * 24);
+                if (hireDays < 60 && type !== 'Sick') {
+                    showAlert('Employee must be with company for 60 days before taking regular leave', 'error');
+                    return;
+                }
+            }
+            
             await submitLeave(empId, type, start, end, days, reason);
-            e.target.reset();
+            document.getElementById('leaveRequestForm').reset();
             document.getElementById('calculatedDays').value = '0 days';
         });
 
         function updateCalculatedDays() {
             const s = document.getElementById('startDate').value;
             const e = document.getElementById('endDate').value;
-            if (s && e) document.getElementById('calculatedDays').value = calculateLeaveDays(s, e) + ' days';
+            if (s && e) {
+                const days = calculateLeaveDays(s, e);
+                document.getElementById('calculatedDays').value = days + ' days';
+            }
         }
+
         document.getElementById('startDate')?.addEventListener('change', updateCalculatedDays);
         document.getElementById('endDate')?.addEventListener('change', updateCalculatedDays);
 
-        gapi.load('client', async () => { await initializeGapiClient(); initializeGisClient(); });
-        document.addEventListener('DOMContentLoaded', () => { if (document.getElementById('dashboard')) switchToTab('dashboard'); });
+        // Initialize
+        gapi.load('client', async () => {
+            await initializeGapiClient();
+            initializeGisClient();
+        });
+
+        // Set default active tab
+        document.addEventListener('DOMContentLoaded', () => {
+            const dashboardTab = document.querySelector('.tab-content');
+            if (dashboardTab) {
+                dashboardTab.style.display = 'block';
+            }
+        });
     </script>
 </body>
 </html>
