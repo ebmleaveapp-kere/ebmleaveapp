@@ -60,34 +60,37 @@
 
         .nav-tabs {
             display: flex;
-            gap: 10px;
+            gap: 5px;
             margin: 20px 0;
-            border-bottom: 1px solid var(--border);
             background: var(--surface);
-            padding: 0 20px;
+            padding: 0;
             flex-wrap: wrap;
-            border-radius: 8px 8px 0 0;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
         }
 
         .nav-tabs button {
             background: none;
             border: none;
-            padding: 15px 20px;
+            padding: 15px 25px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
             color: var(--text-muted);
             border-bottom: 3px solid transparent;
             transition: all 0.3s ease;
+            border-radius: 8px 8px 0 0;
         }
 
         .nav-tabs button:hover {
             color: var(--primary);
+            background: rgba(37, 99, 235, 0.05);
         }
 
         .nav-tabs button.active {
             color: var(--primary);
             border-bottom-color: var(--primary);
+            background: rgba(37, 99, 235, 0.08);
         }
 
         .tab-content {
@@ -107,7 +110,7 @@
         .form-section {
             background: var(--surface);
             padding: 30px;
-            border-radius: 8px;
+            border-radius: 12px;
             margin-bottom: 30px;
             box-shadow: var(--shadow);
         }
@@ -115,6 +118,9 @@
         .form-section h2 {
             margin-bottom: 20px;
             font-size: 20px;
+            color: var(--text);
+            border-left: 4px solid var(--primary);
+            padding-left: 15px;
         }
 
         .form-group {
@@ -133,7 +139,7 @@
             width: 100%;
             padding: 10px 12px;
             border: 1px solid var(--border);
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 14px;
             font-family: inherit;
             transition: all 0.3s ease;
@@ -154,7 +160,7 @@
         button {
             padding: 10px 20px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
@@ -199,18 +205,21 @@
             background-color: #475569;
         }
 
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 8px;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
             background: var(--surface);
             border-radius: 8px;
-            overflow-x: auto;
-            display: block;
-            box-shadow: var(--shadow);
+            overflow: hidden;
         }
 
         thead {
-            background-color: #f1f5f9;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
             border-bottom: 2px solid var(--border);
         }
 
@@ -258,7 +267,7 @@
 
         .alert {
             padding: 15px;
-            border-radius: 6px;
+            border-radius: 8px;
             margin-bottom: 20px;
             border-left: 4px solid;
             animation: slideIn 0.3s ease;
@@ -301,15 +310,16 @@
         }
 
         .stat-card {
-            background: var(--surface);
-            padding: 20px;
-            border-radius: 8px;
+            background: linear-gradient(135deg, var(--surface) 0%, #f8fafc 100%);
+            padding: 25px;
+            border-radius: 12px;
             box-shadow: var(--shadow);
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid var(--border);
         }
 
         .stat-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px);
             box-shadow: var(--shadow-lg);
         }
 
@@ -319,11 +329,12 @@
             text-transform: uppercase;
             font-weight: 600;
             margin-bottom: 10px;
+            letter-spacing: 0.5px;
         }
 
         .stat-card .value {
-            font-size: 32px;
-            font-weight: 700;
+            font-size: 36px;
+            font-weight: 800;
             color: var(--primary);
         }
 
@@ -333,10 +344,10 @@
 
         .auth-container {
             max-width: 450px;
-            margin: 80px auto;
+            margin: 100px auto;
             padding: 40px;
             background: var(--surface);
-            border-radius: 12px;
+            border-radius: 16px;
             box-shadow: var(--shadow-lg);
             text-align: center;
         }
@@ -351,30 +362,20 @@
             color: var(--text-muted);
         }
 
-        .loading {
-            text-align: center;
-            padding: 40px;
-        }
-
-        .spinner {
-            border: 3px solid var(--border);
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         .action-buttons {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             flex-wrap: wrap;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state p {
+            margin: 10px 0;
         }
 
         @media (max-width: 768px) {
@@ -385,14 +386,18 @@
                 grid-template-columns: 1fr;
             }
             th, td {
-                padding: 8px;
+                padding: 10px 8px;
                 font-size: 12px;
             }
-            .nav-tabs {
-                overflow-x: auto;
+            .nav-tabs button {
+                padding: 10px 16px;
+                font-size: 13px;
             }
-            table {
-                font-size: 12px;
+            .container {
+                padding: 15px;
+            }
+            .form-section {
+                padding: 20px;
             }
         }
     </style>
@@ -402,7 +407,7 @@
     <div id="authContainer" class="auth-container">
         <h1>📋 HR Leave Management System</h1>
         <p>Connect with Google Sheets to manage employee leaves</p>
-        <button id="loginBtn" class="btn-primary" style="width: 100%; padding: 12px; font-size: 16px;">
+        <button id="loginBtn" class="btn-primary" style="width: 100%; padding: 14px; font-size: 16px;">
             🔐 Sign in with Google
         </button>
         <div id="errorMessage" style="margin-top: 20px; color: var(--danger); font-size: 14px;"></div>
@@ -414,9 +419,9 @@
             <div class="container">
                 <h1>📋 HR Leave Management System</h1>
                 <p>Manage employee leave requests and balances efficiently</p>
-                <div style="margin-top: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <div style="margin-top: 15px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
                     <span id="userEmail" style="color: var(--text-muted); font-size: 14px;"></span>
-                    <button id="logoutBtn" class="btn-secondary" style="padding: 8px 16px;">Logout</button>
+                    <button id="logoutBtn" class="btn-secondary" style="padding: 8px 20px;">🚪 Logout</button>
                 </div>
             </div>
         </header>
@@ -425,14 +430,15 @@
             <div id="alertContainer"></div>
 
             <div class="nav-tabs">
-                <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+                <button class="tab-btn" data-tab="dashboard">📊 Dashboard</button>
                 <button class="tab-btn" data-tab="employees">👥 Employees</button>
                 <button class="tab-btn" data-tab="leave-requests">📝 Leave Requests</button>
                 <button class="tab-btn" data-tab="leave-balance">⚖️ Leave Balance</button>
                 <button class="tab-btn" data-tab="logs">📜 Activity Logs</button>
             </div>
 
-            <div id="dashboard" class="tab-content active">
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content">
                 <div class="stats-grid">
                     <div class="stat-card">
                         <h3>Total Employees</h3>
@@ -452,106 +458,110 @@
                     </div>
                 </div>
                 <div class="form-section">
-                    <h2>Quick Actions</h2>
+                    <h2>⚡ Quick Actions</h2>
                     <div class="action-buttons">
-                        <button onclick="switchTab('employees')" class="btn-primary">➕ Add Employee</button>
-                        <button onclick="switchTab('leave-requests')" class="btn-primary">📝 Submit Leave</button>
+                        <button onclick="switchToTab('employees')" class="btn-primary">➕ Add New Employee</button>
+                        <button onclick="switchToTab('leave-requests')" class="btn-primary">📝 Submit Leave Request</button>
                     </div>
                 </div>
                 <div class="form-section">
-                    <h2>Recent Activity</h2>
-                    <div id="recentActivityContainer"></div>
+                    <h2>📋 Recent Activity</h2>
+                    <div id="recentActivityContainer" class="table-wrapper"></div>
                 </div>
             </div>
 
+            <!-- Employees Tab -->
             <div id="employees" class="tab-content">
                 <div class="form-section">
-                    <h2>Add New Employee</h2>
+                    <h2>➕ Add New Employee</h2>
                     <form id="employeeForm">
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Employee Name *</label>
+                                <label>👤 Employee Name *</label>
                                 <input type="text" id="employeeName" required placeholder="John Doe">
                             </div>
                             <div class="form-group">
-                                <label>Hire Date *</label>
+                                <label>📅 Hire Date *</label>
                                 <input type="date" id="hireDate" required>
                             </div>
                         </div>
-                        <button type="submit" class="btn-primary">Add Employee</button>
+                        <button type="submit" class="btn-primary">➕ Add Employee</button>
                     </form>
                 </div>
                 <div class="form-section">
-                    <h2>Employee List</h2>
-                    <div style="overflow-x: auto;">
+                    <h2>👥 Employee List</h2>
+                    <div class="table-wrapper">
                         <div id="employeeListContainer"></div>
                     </div>
                 </div>
             </div>
 
+            <!-- Leave Requests Tab -->
             <div id="leave-requests" class="tab-content">
                 <div class="form-section">
-                    <h2>Submit Leave Request</h2>
+                    <h2>📝 Submit Leave Request</h2>
                     <form id="leaveRequestForm">
                         <div class="form-group">
-                            <label>Employee *</label>
+                            <label>👤 Employee *</label>
                             <select id="requestEmployee" required>
                                 <option value="">Select an employee</option>
                             </select>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Leave Type *</label>
+                                <label>📋 Leave Type *</label>
                                 <select id="leaveType" required>
-                                    <option value="">Select</option>
-                                    <option value="Casual">Casual Leave</option>
-                                    <option value="Sick">Sick Leave</option>
-                                    <option value="Earned">Earned Leave</option>
+                                    <option value="">Select leave type</option>
+                                    <option value="Casual">🏖️ Casual Leave</option>
+                                    <option value="Sick">🤒 Sick Leave</option>
+                                    <option value="Earned">⭐ Earned Leave</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Start Date *</label>
+                                <label>📅 Start Date *</label>
                                 <input type="date" id="startDate" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>End Date *</label>
+                                <label>📅 End Date *</label>
                                 <input type="date" id="endDate" required>
                             </div>
                             <div class="form-group">
-                                <label>Reason *</label>
+                                <label>💬 Reason *</label>
                                 <input type="text" id="reason" required placeholder="Reason for leave">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>Calculated Days</label>
-                            <input type="text" id="calculatedDays" readonly value="0 days">
+                            <label>📊 Calculated Leave Days</label>
+                            <input type="text" id="calculatedDays" readonly value="0 days" style="background: #f1f5f9;">
                         </div>
-                        <button type="submit" class="btn-primary">Submit Request</button>
+                        <button type="submit" class="btn-primary">📤 Submit Request</button>
                     </form>
                 </div>
                 <div class="form-section">
-                    <h2>All Leave Requests</h2>
-                    <div style="overflow-x: auto;">
+                    <h2>📋 All Leave Requests</h2>
+                    <div class="table-wrapper">
                         <div id="leaveRequestsContainer"></div>
                     </div>
                 </div>
             </div>
 
+            <!-- Leave Balance Tab -->
             <div id="leave-balance" class="tab-content">
                 <div class="form-section">
-                    <h2>Leave Balance Summary</h2>
-                    <div style="overflow-x: auto;">
+                    <h2>⚖️ Leave Balance Summary</h2>
+                    <div class="table-wrapper">
                         <div id="leaveBalanceContainer"></div>
                     </div>
                 </div>
             </div>
 
+            <!-- Activity Logs Tab -->
             <div id="logs" class="tab-content">
                 <div class="form-section">
-                    <h2>Activity Logs</h2>
-                    <div style="overflow-x: auto;">
+                    <h2>📜 Activity Logs</h2>
+                    <div class="table-wrapper">
                         <div id="activityLogsContainer"></div>
                     </div>
                 </div>
@@ -572,24 +582,65 @@
         };
 
         let tokenClient = null;
-        let gapiInited = false;
-        let gisInited = false;
         let isAuthenticated = false;
-        let allEmployees = [], allLeaveRequests = [], allLeaveBalance = [], allActivityLogs = [];
+        let allEmployees = [];
+        let allLeaveRequests = [];
+        let allLeaveBalance = [];
+        let allActivityLogs = [];
 
+        // ============ TAB NAVIGATION - FIXED ============
+        function switchToTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            const selectedTab = document.getElementById(tabName);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            }
+            
+            // Add active class to clicked button
+            const selectedButton = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+            if (selectedButton) {
+                selectedButton.classList.add('active');
+            }
+        }
+
+        // Initialize tab event listeners
+        function initTabListeners() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    switchToTab(tabName);
+                });
+            });
+        }
+
+        // Make switchToTab available globally
+        window.switchToTab = switchToTab;
+
+        // ============ HELPER FUNCTIONS ============
         function showAlert(message, type) {
             const container = document.getElementById('alertContainer');
             const id = 'alert-' + Date.now();
-            container.insertAdjacentHTML('beforeend', `<div id="${id}" class="alert alert-${type}">${message}</div>`);
-            setTimeout(() => document.getElementById(id)?.remove(), 5000);
+            const alertDiv = document.createElement('div');
+            alertDiv.id = id;
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = message;
+            container.appendChild(alertDiv);
+            setTimeout(() => {
+                const element = document.getElementById(id);
+                if (element) element.remove();
+            }, 5000);
         }
-
-        window.switchTab = function(tabName) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-        };
 
         function calculateLeaveDays(start, end) {
             let days = 0;
@@ -598,7 +649,7 @@
             
             while (currentDate <= endDate) {
                 const dayOfWeek = currentDate.getDay();
-                if (dayOfWeek !== 0) { // Not Sunday
+                if (dayOfWeek !== 0) {
                     days += (dayOfWeek === 6) ? 0.5 : 1;
                 }
                 currentDate.setDate(currentDate.getDate() + 1);
@@ -606,6 +657,7 @@
             return days;
         }
 
+        // ============ DATA LOADING ============
         async function loadAllData() {
             if (!isAuthenticated) return;
             
@@ -670,6 +722,7 @@
         }
 
         function updateUI() {
+            // Update stats
             document.getElementById('totalEmployees').innerText = allEmployees.length;
             document.getElementById('pendingRequests').innerText = allLeaveRequests.filter(r => r.status === 'Pending').length;
             const now = new Date();
@@ -681,10 +734,10 @@
             document.getElementById('approvedMonth').innerText = approvedThisMonth;
             document.getElementById('totalLogs').innerText = allActivityLogs.length;
 
-            // Update dropdown
+            // Update employee dropdown
             const dropdown = document.getElementById('requestEmployee');
             if (dropdown) {
-                dropdown.innerHTML = '<option value="">Select Employee</option>';
+                dropdown.innerHTML = '<option value="">Select an employee</option>';
                 allEmployees.forEach(emp => {
                     const option = document.createElement('option');
                     option.value = emp.id;
@@ -696,77 +749,78 @@
             // Employee table
             const empContainer = document.getElementById('employeeListContainer');
             if (allEmployees.length === 0) {
-                empContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px;">No employees added yet</p>';
+                empContainer.innerHTML = '<div class="empty-state"><p>👥 No employees added yet</p><p>Click "Add New Employee" to get started</p></div>';
             } else {
-                let html = '<table><thead><tr><th>ID</th><th>Name</th><th>Hire Date</th><th>Status</th></tr></thead><tbody>';
+                let html = '</table><thead>\n                            <tr>\n                                <th>ID</th>\n                                <th>Name</th>\n                                <th>Hire Date</th>\n                                <th>Status</th>\n                            </tr>\n                        </thead>\n                        <tbody>';
                 allEmployees.forEach(emp => {
-                    html += `<tr><td>${emp.id}</td><td>${emp.name}</td><td>${emp.hireDate}</td><td><span class="badge badge-approved">${emp.status}</span></td></tr>`;
+                    html += `\n                            <tr>\n                                <td>${emp.id}</td>\n                                <td><strong>${emp.name}</strong></td>\n                                <td>${emp.hireDate}</td>\n                                <td><span class="badge badge-approved">${emp.status}</span></td>\n                            </tr>`;
                 });
-                html += '</tbody></table>';
+                html += '\n                        </tbody>\n                    </table>';
                 empContainer.innerHTML = html;
             }
 
             // Leave requests table
             const reqContainer = document.getElementById('leaveRequestsContainer');
             if (allLeaveRequests.length === 0) {
-                reqContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px;">No leave requests yet</p>';
+                reqContainer.innerHTML = '<div class="empty-state"><p>📝 No leave requests yet</p><p>Submit a leave request to get started</p></div>';
             } else {
-                let html = '<table><thead><tr><th>ID</th><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+                let html = '<table>\n                        <thead>\n                            <tr>\n                                <th>ID</th>\n                                <th>Employee</th>\n                                <th>Type</th>\n                                <th>Dates</th>\n                                <th>Days</th>\n                                <th>Status</th>\n                                <th>Actions</th>\n                            </tr>\n                        </thead>\n                        <tbody>';
                 allLeaveRequests.forEach(req => {
                     const emp = allEmployees.find(e => e.id === req.employeeId);
                     const statusClass = req.status.toLowerCase();
                     const actions = req.status === 'Pending' ? 
-                        `<button class="btn-success" onclick="approveRequest('${req.id}')" style="margin-right:5px">Approve</button>
-                         <button class="btn-danger" onclick="rejectRequest('${req.id}')">Reject</button>` : 
-                        '-';
-                    html += `<tr>
-                        <td>${req.id}</td>
-                        <td>${emp?.name || 'Unknown'}</td>
-                        <td>${req.type}</td>
-                        <td>${req.startDate} to ${req.endDate}</td>
-                        <td>${req.days}</td>
-                        <td><span class="badge badge-${statusClass}">${req.status}</span></td>
-                        <td>${actions}</td>
-                    </tr>`;
+                        `<button class="btn-success" onclick="approveRequest('${req.id}')" style="margin-right:8px">✅ Approve</button>
+                         <button class="btn-danger" onclick="rejectRequest('${req.id}')">❌ Reject</button>` : 
+                        '<span style="color: var(--text-muted);">—</span>';
+                    html += `\n                            <tr>
+                                <td>${req.id}</td>
+                                <td><strong>${emp?.name || 'Unknown'}</strong></td>
+                                <td>${req.type}</td>
+                                <td>${req.startDate} → ${req.endDate}</td>
+                                <td>${req.days}</td>
+                                <td><span class="badge badge-${statusClass}">${req.status}</span></td>
+                                <td>${actions}</td>
+                            </tr>`;
                 });
-                html += '</tbody></tr>';
+                html += '\n                        </tbody>\n                    </table>';
                 reqContainer.innerHTML = html;
             }
 
             // Balance table
             const balContainer = document.getElementById('leaveBalanceContainer');
             if (allLeaveBalance.length === 0) {
-                balContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px;">No balance data available</p>';
+                balContainer.innerHTML = '<div class="empty-state"><p>⚖️ No balance data available</p></div>';
             } else {
-                let html = '<table><thead><tr><th>Employee</th><th>Total Allotted</th><th>Used</th><th>Remaining</th></tr></thead><tbody>';
+                let html = '能able>\n                        <thead>\n                            <tr>\n                                <th>Employee</th>\n                                <th>Total Allotted</th>\n                                <th>Used</th>\n                                <th>Remaining</th>\n                            </tr>\n                        </thead>\n                        <tbody>';
                 allLeaveBalance.forEach(balance => {
                     const emp = allEmployees.find(e => e.id === balance.employeeId);
-                    html += `<tr>
-                        <td>${emp?.name || 'Unknown'}</td>
-                        <td>${balance.totalAllotted} days</td>
-                        <td>${balance.used} days</td>
-                        <td><strong>${balance.remaining} days</strong></td>
-                    </tr>`;
+                    const remainingClass = balance.remaining < 5 ? 'badge-warning' : '';
+                    html += `\n                            <tr>
+                                <td><strong>${emp?.name || 'Unknown'}</strong></td>
+                                <td>${balance.totalAllotted} days</td>
+                                <td>${balance.used} days</td>
+                                <td><strong style="color: ${balance.remaining < 5 ? '#ea580c' : '#16a34a'}">${balance.remaining} days</strong></td>
+                            </tr>`;
                 });
-                html += '</tbody></tr>';
+                html += '\n                        </tbody>\n                    </table>';
                 balContainer.innerHTML = html;
             }
 
-            // Activity logs
+            // Activity logs table
             const logContainer = document.getElementById('activityLogsContainer');
             if (allActivityLogs.length === 0) {
-                logContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px;">No activity logs yet</p>';
+                logContainer.innerHTML = '<div class="empty-state"><p>📜 No activity logs yet</p></div>';
             } else {
-                let html = '<table><thead><tr><th>Timestamp</th><th>Action</th><th>Details</th><th>User</th></tr></thead><tbody>';
+                let html = '能able>\n                        <thead>\n                            <tr>\n                                <th>Timestamp</th>\n                                <th>Action</th>\n                                <th>Details</th>\n                                <th>User</th>\n                            </tr>\n                        </thead>\n                        <tbody>';
                 allActivityLogs.slice().reverse().slice(0, 50).forEach(log => {
-                    html += `<tr>
-                        <td>${new Date(log.timestamp).toLocaleString()}</td>
-                        <td>${log.action}</td>
-                        <td>${log.details}</td>
-                        <td>${log.user}</td>
-                    </tr>`;
+                    html += `\n                            <tr>
+                                <td>${new Date(log.timestamp).toLocaleString()}</td>
+                                <td><strong>${log.action}</strong></td>
+                                <td>${log.details}</td>
+                                <td>${log.user}</td>
+                            </tr>`;
                 });
-                html += '</tbody>表>';
+                html += '\n                        </tbody>\n                    </table>';
                 logContainer.innerHTML = html;
             }
 
@@ -774,21 +828,22 @@
             const recentContainer = document.getElementById('recentActivityContainer');
             const recent = allActivityLogs.slice(-5).reverse();
             if (recent.length === 0) {
-                recentContainer.innerHTML = '<p style="color: var(--text-muted);">No recent activity</p>';
+                recentContainer.innerHTML = '<div class="empty-state"><p>No recent activity</p></div>';
             } else {
-                let html = '<table><thead><tr><th>Time</th><th>Action</th><th>Details</th></tr></thead><tbody>';
+                let html = '能able>\n                        <thead>\n                            <tr>\n                                <th>Time</th>\n                                <th>Action</th>\n                                <th>Details</th>\n                            </tr>\n                        </thead>\n                        <tbody>';
                 recent.forEach(log => {
-                    html += `<tr>
-                        <td>${new Date(log.timestamp).toLocaleString()}</td>
-                        <td>${log.action}</td>
-                        <td>${log.details}</td>
-                    </tr>`;
+                    html += `\n                            <tr>
+                                <td>${new Date(log.timestamp).toLocaleString()}</td>
+                                <td><strong>${log.action}</strong></td>
+                                <td>${log.details}</td>
+                            </tr>`;
                 });
-                html += '</tbody>赶';
+                html += '\n                        </tbody>\n                    </table>';
                 recentContainer.innerHTML = html;
             }
         }
 
+        // ============ DATABASE OPERATIONS ============
         async function logActivity(action, details) {
             try {
                 await gapi.client.sheets.spreadsheets.values.append({
@@ -818,7 +873,7 @@
                     resource: { values: [[id, 16, 0, 16, new Date().toISOString()]] }
                 });
                 await logActivity(`Added employee: ${name}`, `ID: ${id}`);
-                showAlert(`Employee "${name}" added successfully!`, 'success');
+                showAlert(`✅ Employee "${name}" added successfully!`, 'success');
                 await loadAllData();
                 return true;
             } catch (error) {
@@ -839,7 +894,7 @@
                 });
                 const emp = allEmployees.find(e => e.id === empId);
                 await logActivity('Leave request submitted', `${emp?.name} - ${days} days (${type})`);
-                showAlert('Leave request submitted successfully!', 'success');
+                showAlert('✅ Leave request submitted successfully!', 'success');
                 await loadAllData();
                 return true;
             } catch (error) {
@@ -873,7 +928,7 @@
                     });
                 }
                 await logActivity('Leave request approved', `Request ID: ${reqId}`);
-                showAlert('Leave request approved!', 'success');
+                showAlert('✅ Leave request approved!', 'success');
                 await loadAllData();
             } catch (error) {
                 console.error('Error approving request:', error);
@@ -893,7 +948,7 @@
                     resource: { values: [['Rejected']] }
                 });
                 await logActivity('Leave request rejected', `Request ID: ${reqId}`);
-                showAlert('Leave request rejected!', 'success');
+                showAlert('❌ Leave request rejected!', 'warning');
                 await loadAllData();
             } catch (error) {
                 console.error('Error rejecting request:', error);
@@ -901,13 +956,12 @@
             }
         };
 
-        // Initialize Google API
+        // ============ AUTHENTICATION ============
         function initializeGapiClient() {
             return gapi.client.init({
                 apiKey: CONFIG.API_KEY,
                 discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
             }).then(() => {
-                gapiInited = true;
                 console.log('GAPI client initialized');
             }).catch(err => {
                 console.error('Error initializing GAPI:', err);
@@ -925,18 +979,18 @@
                         isAuthenticated = true;
                         document.getElementById('authContainer').classList.add('hidden');
                         document.getElementById('appContainer').classList.remove('hidden');
+                        initTabListeners(); // Initialize tab listeners after showing app
                         await loadAllData();
-                        showAlert('Successfully connected to Google Sheets!', 'success');
+                        showAlert('🎉 Successfully connected to Google Sheets!', 'success');
                     } else {
-                        console.error('No access token received');
                         document.getElementById('errorMessage').innerText = 'Authentication failed. Please try again.';
                     }
                 },
             });
-            gisInited = true;
             console.log('GIS client initialized');
         }
 
+        // ============ EVENT LISTENERS ============
         document.getElementById('loginBtn')?.addEventListener('click', () => {
             if (tokenClient) {
                 tokenClient.requestAccessToken();
@@ -1021,6 +1075,15 @@
 
         document.getElementById('startDate')?.addEventListener('change', updateCalculatedDays);
         document.getElementById('endDate')?.addEventListener('change', updateCalculatedDays);
+
+        // Initialize app - set default active tab to dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set dashboard as active by default
+            const dashboardTab = document.querySelector('.tab-btn[data-tab="dashboard"]');
+            if (dashboardTab) {
+                dashboardTab.classList.add('active');
+            }
+        });
 
         // Load gapi and initialize
         gapi.load('client', async () => {
