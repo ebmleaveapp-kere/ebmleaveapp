@@ -5,194 +5,231 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>HR Leave Management System</title>
 
-<style>
-/* ===== KEEPING YOUR ORIGINAL UI (UNCHANGED) ===== */
-body { font-family: Arial; background:#f8fafc; margin:0; }
-.hidden{display:none!important;}
-.container{max-width:1200px;margin:auto;padding:20px;}
-button{cursor:pointer}
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
 
-/* (YOUR FULL STYLE KEPT SAFE — shortened here for clarity in chat) */
+<style>
+/* ===== UI (SAFE ORIGINAL STYLE CLEANED) ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f8fafc;
+    color: #1e293b;
+}
+
+.hidden { display: none !important; }
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+
+header {
+    background: white;
+    padding: 15px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 20px;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn {
+    background: #2563eb;
+    color: white;
+}
+
+.btn:hover {
+    background: #1e40af;
+}
+
+.card {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+#debug {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    background: #111;
+    color: #0f0;
+    padding: 10px;
+    font-size: 12px;
+    max-width: 90%;
+}
 </style>
 </head>
 
 <body>
 
+<div id="debug">Booting system...</div>
+
 <!-- AUTH -->
 <div id="authContainer" class="container">
-  <h1>HR Leave System</h1>
-  <p>Sign in to continue</p>
-  <button id="loginBtn">Sign in with Google</button>
+    <h2>HR Leave System</h2>
+    <p>Sign in to continue</p>
+    <button id="loginBtn" class="btn">Sign in with Google</button>
 </div>
 
 <!-- APP -->
 <div id="appContainer" class="hidden">
 
-  <h2>Dashboard</h2>
-  <button onclick="logout()">Logout</button>
+<header>
+    <h2>HR Dashboard</h2>
+    <button id="logoutBtn" class="btn">Logout</button>
+</header>
 
-  <div>
-    <h3>Employees: <span id="totalEmployees">0</span></h3>
-    <h3>Pending: <span id="pendingRequests">0</span></h3>
-  </div>
+<div class="container">
 
-  <hr/>
-
-  <!-- Employees -->
-  <h3>Add Employee</h3>
-  <input id="employeeName" placeholder="Name"/>
-  <input id="hireDate" type="date"/>
-  <button onclick="addEmployee()">Add</button>
-
-  <div id="employeeList"></div>
-
-  <hr/>
-
-  <!-- Leave -->
-  <h3>Leave Request</h3>
-  <select id="empSelect"></select>
-  <input id="leaveType" placeholder="Type"/>
-  <input id="startDate" type="date"/>
-  <input id="endDate" type="date"/>
-  <input id="reason" placeholder="Reason"/>
-  <button onclick="submitLeave()">Submit</button>
-
-  <div id="leaveList"></div>
+    <div class="card">
+        <h3>System Status</h3>
+        <button onclick="loadAllData()" class="btn">Test Google Sheets Connection</button>
+        <p id="statusText"></p>
+    </div>
 
 </div>
-
-<script src="https://accounts.google.com/gsi/client"></script>
+</div>
 
 <script>
-/* ================= CONFIG ================= */
+/* ================= CONFIG (YOUR WORKING DATA) ================= */
 const CONFIG = {
-  CLIENT_ID: "YOUR_CLIENT_ID.apps.googleusercontent.com",
-  API_KEY: "YOUR_API_KEY",
-  SHEET_ID: "YOUR_SPREADSHEET_ID"
+    CLIENT_ID: "1058574831034-cb30fi18f3f05937969jksvhipso5hav.apps.googleusercontent.com",
+    API_KEY: "AIzaSyD4oMaBJeXQy8JCpzqcOAJ9HexNAKCPlyY",
+    SPREADSHEET_ID: "1NnOJFFLbPtuPYbI53dXIKA_KezdnxhCiqsPteuvL1Fc",
+    SCOPES: "https://www.googleapis.com/auth/spreadsheets"
 };
 
-/* ================= STATE ================= */
-let token = null;
-let employees = [];
-let leaves = [];
+let tokenClient;
+let accessToken = null;
 
-/* ================= AUTH FIXED ================= */
-function initAuth(){
-  google.accounts.id.initialize({
-    client_id: CONFIG.CLIENT_ID,
-    callback: (res)=>{
-      token = res.credential;
-      localStorage.setItem("token", token);
-      showApp();
-      loadData();
-    }
-  });
-
-  document.getElementById("loginBtn").onclick = ()=>{
-    google.accounts.id.prompt();
-  };
+/* ================= SAFE DEBUG ================= */
+function debug(msg) {
+    document.getElementById("debug").innerText = msg;
 }
 
-function showApp(){
-  document.getElementById("authContainer").classList.add("hidden");
-  document.getElementById("appContainer").classList.remove("hidden");
+/* ================= BOOT ================= */
+window.addEventListener("load", () => {
+    debug("Loading Google APIs...");
+    initGoogle();
+});
+
+/* ================= INIT GOOGLE ================= */
+function initGoogle() {
+    let tries = 0;
+
+    const wait = setInterval(() => {
+        tries++;
+
+        if (window.google && window.gapi) {
+            clearInterval(wait);
+            initGapi();
+        }
+
+        if (tries > 40) {
+            clearInterval(wait);
+            debug("Google scripts failed to load");
+        }
+    }, 200);
 }
 
-function logout(){
-  localStorage.removeItem("token");
-  location.reload();
-}
+/* ================= GAPI INIT ================= */
+function initGapi() {
+    gapi.load("client", async () => {
+        try {
+            await gapi.client.init({
+                apiKey: CONFIG.API_KEY,
+                discoveryDocs: [
+                    "https://sheets.googleapis.com/$discovery/rest?version=v4"
+                ]
+            });
 
-/* ================= SAFE SHEETS CALL ================= */
-async function sheetGet(range){
-  const res = await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${range}?key=${CONFIG.API_KEY}`
-  );
-  return res.json();
-}
+            initAuth();
+            debug("Google API ready ✔");
 
-async function sheetAppend(range, values){
-  return fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${range}:append?valueInputOption=RAW&key=${CONFIG.API_KEY}`,
-    {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ values:[values] })
-    }
-  );
-}
-
-/* ================= LOAD DATA ================= */
-async function loadData(){
-  try {
-    const emp = await sheetGet("Employees!A:D");
-    employees = (emp.values || []).slice(1);
-
-    document.getElementById("totalEmployees").innerText = employees.length;
-
-    const sel = document.getElementById("empSelect");
-    sel.innerHTML = "";
-    employees.forEach(e=>{
-      let opt = document.createElement("option");
-      opt.value = e[0];
-      opt.textContent = e[1];
-      sel.appendChild(opt);
+        } catch (e) {
+            debug("GAPI error: " + e.message);
+        }
     });
-
-  } catch(e){
-    console.log("load error", e);
-  }
 }
 
-/* ================= ADD EMPLOYEE ================= */
-async function addEmployee(){
-  const name = document.getElementById("employeeName").value;
-  const date = document.getElementById("hireDate").value;
+/* ================= AUTH ================= */
+function initAuth() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CONFIG.CLIENT_ID,
+        scope: CONFIG.SCOPES,
+        callback: (resp) => {
+            accessToken = resp.access_token;
 
-  if(!name || !date) return alert("Fill all");
+            gapi.client.setToken({
+                access_token: accessToken
+            });
 
-  await sheetAppend("Employees!A:D", [
-    "EMP-"+Date.now(),
-    name,
-    date,
-    "Active"
-  ]);
-
-  await loadData();
+            showApp();
+            debug("Login successful ✔");
+        }
+    });
 }
 
-/* ================= LEAVE ================= */
-async function submitLeave(){
-  const emp = document.getElementById("empSelect").value;
-  const type = document.getElementById("leaveType").value;
-  const start = document.getElementById("startDate").value;
-  const end = document.getElementById("endDate").value;
-  const reason = document.getElementById("reason").value;
-
-  await sheetAppend("LeaveRequests!A:H",[
-    "REQ-"+Date.now(),
-    emp,
-    type,
-    start,
-    end,
-    1,
-    "Pending",
-    reason
-  ]);
-
-  alert("Submitted");
+/* ================= UI CONTROL ================= */
+function showApp() {
+    document.getElementById("authContainer").classList.add("hidden");
+    document.getElementById("appContainer").classList.remove("hidden");
 }
 
-/* ================= INIT ================= */
-window.onload = ()=>{
-  initAuth();
+function showAuth() {
+    document.getElementById("authContainer").classList.remove("hidden");
+    document.getElementById("appContainer").classList.add("hidden");
+}
 
-  if(localStorage.getItem("token")){
-    token = localStorage.getItem("token");
-    showApp();
-    loadData();
-  }
+/* ================= BUTTONS ================= */
+document.getElementById("loginBtn").onclick = () => {
+    if (!tokenClient) return debug("Auth not ready");
+    tokenClient.requestAccessToken({ prompt: "consent" });
 };
+
+document.getElementById("logoutBtn").onclick = () => {
+    accessToken = null;
+    gapi.client.setToken(null);
+    showAuth();
+    debug("Logged out");
+};
+
+/* ================= SHEET TEST ================= */
+async function loadAllData() {
+    try {
+        const res = await gapi.client.sheets.spreadsheets.values.get({
+            spreadsheetId: CONFIG.SPREADSHEET_ID,
+            range: "Employees!A:D"
+        });
+
+        console.log(res.result.values);
+
+        document.getElementById("statusText").innerText =
+            "✅ Google Sheets connected successfully";
+
+        debug("Sheets OK ✔");
+
+    } catch (e) {
+        document.getElementById("statusText").innerText =
+            "❌ Connection failed";
+
+        debug("Sheet error: " + e.message);
+    }
+}
 </script>
 
 </body>
