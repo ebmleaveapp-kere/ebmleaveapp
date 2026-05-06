@@ -27,12 +27,6 @@
             --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background-color: var(--background);
@@ -210,7 +204,8 @@
             border-collapse: collapse;
             background: var(--surface);
             border-radius: 8px;
-            overflow: hidden;
+            overflow-x: auto;
+            display: block;
             box-shadow: var(--shadow);
         }
 
@@ -356,29 +351,6 @@
             color: var(--text-muted);
         }
 
-        .setup-guide {
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            text-align: left;
-            font-size: 13px;
-        }
-
-        .setup-guide h3 {
-            margin-bottom: 10px;
-            color: var(--primary);
-        }
-
-        .setup-guide ol {
-            margin-left: 20px;
-            color: var(--text-muted);
-        }
-
-        .setup-guide li {
-            margin: 8px 0;
-        }
-
         .loading {
             text-align: center;
             padding: 40px;
@@ -402,6 +374,7 @@
         .action-buttons {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         @media (max-width: 768px) {
@@ -418,6 +391,9 @@
             .nav-tabs {
                 overflow-x: auto;
             }
+            table {
+                font-size: 12px;
+            }
         }
     </style>
 </head>
@@ -429,29 +405,7 @@
         <button id="loginBtn" class="btn-primary" style="width: 100%; padding: 12px; font-size: 16px;">
             🔐 Sign in with Google
         </button>
-        
-        <div class="setup-guide">
-            <h3>📌 Important Setup Instructions for Vercel Deployment:</h3>
-            <ol>
-                <li><strong>Add Authorized Redirect URI in Google Cloud Console:</strong>
-                    <br>→ Go to Google Cloud Console → APIs & Services → Credentials
-                    <br>→ Edit your OAuth 2.0 Client ID
-                    <br>→ Add this URI: <code id="redirectUri"></code>
-                </li>
-                <li><strong>Add Authorized JavaScript Origins:</strong>
-                    <br>→ Add your Vercel domain: <code id="jsOrigin"></code>
-                    <br>→ Also add: <code>http://localhost:3000</code> (for local testing)
-                </li>
-                <li><strong>Enable Google Sheets API:</strong>
-                    <br>→ Go to APIs & Services → Library
-                    <br>→ Search for "Google Sheets API" and enable it
-                </li>
-                <li><strong>Share your Google Sheet:</strong>
-                    <br>→ Share the sheet with your email address used in Google Cloud
-                    <br>→ Give "Editor" permissions
-                </li>
-            </ol>
-        </div>
+        <div id="errorMessage" style="margin-top: 20px; color: var(--danger); font-size: 14px;"></div>
     </div>
 
     <!-- Main App Container -->
@@ -460,7 +414,7 @@
             <div class="container">
                 <h1>📋 HR Leave Management System</h1>
                 <p>Manage employee leave requests and balances efficiently</p>
-                <div style="margin-top: 15px; display: flex; gap: 10px; align-items: center;">
+                <div style="margin-top: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                     <span id="userEmail" style="color: var(--text-muted); font-size: 14px;"></span>
                     <button id="logoutBtn" class="btn-secondary" style="padding: 8px 16px;">Logout</button>
                 </div>
@@ -529,7 +483,9 @@
                 </div>
                 <div class="form-section">
                     <h2>Employee List</h2>
-                    <div id="employeeListContainer"></div>
+                    <div style="overflow-x: auto;">
+                        <div id="employeeListContainer"></div>
+                    </div>
                 </div>
             </div>
 
@@ -577,21 +533,27 @@
                 </div>
                 <div class="form-section">
                     <h2>All Leave Requests</h2>
-                    <div id="leaveRequestsContainer"></div>
+                    <div style="overflow-x: auto;">
+                        <div id="leaveRequestsContainer"></div>
+                    </div>
                 </div>
             </div>
 
             <div id="leave-balance" class="tab-content">
                 <div class="form-section">
                     <h2>Leave Balance Summary</h2>
-                    <div id="leaveBalanceContainer"></div>
+                    <div style="overflow-x: auto;">
+                        <div id="leaveBalanceContainer"></div>
+                    </div>
                 </div>
             </div>
 
             <div id="logs" class="tab-content">
                 <div class="form-section">
                     <h2>Activity Logs</h2>
-                    <div id="activityLogsContainer"></div>
+                    <div style="overflow-x: auto;">
+                        <div id="activityLogsContainer"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -609,13 +571,9 @@
             SCOPES: 'https://www.googleapis.com/auth/spreadsheets'
         };
 
-        // Display current URL for setup
-        const currentUrl = window.location.origin;
-        document.getElementById('redirectUri')?.setAttribute('style', 'background:#e2e8f0; padding:2px 6px; border-radius:4px; font-family:monospace;');
-        document.getElementById('redirectUri')?.innerText = `${currentUrl}`;
-        document.getElementById('jsOrigin')?.innerHTML = `<code style="background:#e2e8f0; padding:2px 6px; border-radius:4px;">${currentUrl}</code>`;
-
         let tokenClient = null;
+        let gapiInited = false;
+        let gisInited = false;
         let isAuthenticated = false;
         let allEmployees = [], allLeaveRequests = [], allLeaveBalance = [], allActivityLogs = [];
 
@@ -635,45 +593,74 @@
 
         function calculateLeaveDays(start, end) {
             let days = 0;
-            for (let d = new Date(start); d <= new Date(end); d.setDate(d.getDate() + 1)) {
-                const day = d.getDay();
-                if (day === 0) continue;
-                days += (day === 6) ? 0.5 : 1;
+            let currentDate = new Date(start);
+            let endDate = new Date(end);
+            
+            while (currentDate <= endDate) {
+                const dayOfWeek = currentDate.getDay();
+                if (dayOfWeek !== 0) { // Not Sunday
+                    days += (dayOfWeek === 6) ? 0.5 : 1;
+                }
+                currentDate.setDate(currentDate.getDate() + 1);
             }
             return days;
         }
 
         async function loadAllData() {
+            if (!isAuthenticated) return;
+            
             try {
-                if (!isAuthenticated) return;
-                
                 // Load Employees
                 const empResp = await gapi.client.sheets.spreadsheets.values.get({
                     spreadsheetId: CONFIG.SPREADSHEET_ID,
                     range: 'Employees!A:D'
                 });
-                allEmployees = (empResp.result.values || []).slice(1).map(r => ({ id: r[0], name: r[1], hireDate: r[2], status: r[3] })).filter(e => e.name);
+                allEmployees = (empResp.result.values || []).slice(1).map(r => ({ 
+                    id: r[0], 
+                    name: r[1], 
+                    hireDate: r[2], 
+                    status: r[3] || 'Active' 
+                })).filter(e => e.name);
 
                 // Load Leave Balance
                 const balResp = await gapi.client.sheets.spreadsheets.values.get({
                     spreadsheetId: CONFIG.SPREADSHEET_ID,
                     range: 'LeaveBalance!A:E'
                 });
-                allLeaveBalance = (balResp.result.values || []).slice(1).map(r => ({ employeeId: r[0], totalAllotted: parseFloat(r[1])||16, used: parseFloat(r[2])||0, remaining: parseFloat(r[3])||16 }));
+                allLeaveBalance = (balResp.result.values || []).slice(1).map(r => ({ 
+                    employeeId: r[0], 
+                    totalAllotted: parseFloat(r[1]) || 16, 
+                    used: parseFloat(r[2]) || 0, 
+                    remaining: parseFloat(r[3]) || 16 
+                })).filter(b => b.employeeId);
 
                 // Load Leave Requests
                 const reqResp = await gapi.client.sheets.spreadsheets.values.get({
                     spreadsheetId: CONFIG.SPREADSHEET_ID,
                     range: 'LeaveRequests!A:H'
                 });
-                allLeaveRequests = (reqResp.result.values || []).slice(1).map(r => ({ id: r[0], employeeId: r[1], type: r[2], startDate: r[3], endDate: r[4], days: parseFloat(r[5])||0, status: r[6] || 'Pending', reason: r[7] }));
+                allLeaveRequests = (reqResp.result.values || []).slice(1).map(r => ({ 
+                    id: r[0], 
+                    employeeId: r[1], 
+                    type: r[2], 
+                    startDate: r[3], 
+                    endDate: r[4], 
+                    days: parseFloat(r[5]) || 0, 
+                    status: r[6] || 'Pending', 
+                    reason: r[7] 
+                })).filter(req => req.employeeId);
 
                 // Load Activity Logs
                 const logResp = await gapi.client.sheets.spreadsheets.values.get({
                     spreadsheetId: CONFIG.SPREADSHEET_ID,
                     range: 'ActivityLogs!A:D'
                 });
-                allActivityLogs = (logResp.result.values || []).slice(1).map(r => ({ timestamp: r[0], action: r[1], details: r[2], user: r[3] }));
+                allActivityLogs = (logResp.result.values || []).slice(1).map(r => ({ 
+                    timestamp: r[0], 
+                    action: r[1], 
+                    details: r[2], 
+                    user: r[3] 
+                })).filter(log => log.action);
 
                 updateUI();
             } catch (error) {
@@ -686,21 +673,37 @@
             document.getElementById('totalEmployees').innerText = allEmployees.length;
             document.getElementById('pendingRequests').innerText = allLeaveRequests.filter(r => r.status === 'Pending').length;
             const now = new Date();
-            const approvedThisMonth = allLeaveRequests.filter(r => r.status === 'Approved' && new Date(r.startDate).getMonth() === now.getMonth()).length;
+            const approvedThisMonth = allLeaveRequests.filter(r => {
+                if (r.status !== 'Approved') return false;
+                const reqDate = new Date(r.startDate);
+                return reqDate.getMonth() === now.getMonth() && reqDate.getFullYear() === now.getFullYear();
+            }).length;
             document.getElementById('approvedMonth').innerText = approvedThisMonth;
             document.getElementById('totalLogs').innerText = allActivityLogs.length;
 
             // Update dropdown
             const dropdown = document.getElementById('requestEmployee');
-            dropdown.innerHTML = '<option value="">Select Employee</option>';
-            allEmployees.forEach(emp => dropdown.appendChild(new Option(emp.name, emp.id)));
+            if (dropdown) {
+                dropdown.innerHTML = '<option value="">Select Employee</option>';
+                allEmployees.forEach(emp => {
+                    const option = document.createElement('option');
+                    option.value = emp.id;
+                    option.textContent = emp.name;
+                    dropdown.appendChild(option);
+                });
+            }
 
             // Employee table
             const empContainer = document.getElementById('employeeListContainer');
             if (allEmployees.length === 0) {
                 empContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px;">No employees added yet</p>';
             } else {
-                empContainer.innerHTML = `</table><thead><tr><th>ID</th><th>Name</th><th>Hire Date</th><th>Status</th></tr></thead><tbody>${allEmployees.map(e => `<tr><td>${e.id}</td><td>${e.name}</td><td>${e.hireDate}</td><td><span class="badge badge-approved">${e.status}</span></td></tr>`).join('')}</tbody>〉�`;
+                let html = '<table><thead><tr><th>ID</th><th>Name</th><th>Hire Date</th><th>Status</th></tr></thead><tbody>';
+                allEmployees.forEach(emp => {
+                    html += `<tr><td>${emp.id}</td><td>${emp.name}</td><td>${emp.hireDate}</td><td><span class="badge badge-approved">${emp.status}</span></td></tr>`;
+                });
+                html += '</tbody></table>';
+                empContainer.innerHTML = html;
             }
 
             // Leave requests table
@@ -708,11 +711,26 @@
             if (allLeaveRequests.length === 0) {
                 reqContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px;">No leave requests yet</p>';
             } else {
-                reqContainer.innerHTML = `<table><thead><tr><th>ID</th><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Status</th><th>Actions</th></tr></thead><tbody>${allLeaveRequests.map(r => {
-                    const emp = allEmployees.find(e => e.id === r.employeeId);
-                    const actions = r.status === 'Pending' ? `<button class="btn-success" onclick="approveRequest('${r.id}')" style="margin-right:5px">Approve</button><button class="btn-danger" onclick="rejectRequest('${r.id}')">Reject</button>` : '-';
-                    return `<tr><td>${r.id}</td><td>${emp?.name || 'Unknown'}</td><td>${r.type}</td><td>${r.startDate} to ${r.endDate}</td><td>${r.days}</td><td><span class="badge badge-${r.status.toLowerCase()}">${r.status}</span></td><td>${actions}</td></tr>`;
-                }).join('')}</tbody></table>`;
+                let html = '<table><thead><tr><th>ID</th><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+                allLeaveRequests.forEach(req => {
+                    const emp = allEmployees.find(e => e.id === req.employeeId);
+                    const statusClass = req.status.toLowerCase();
+                    const actions = req.status === 'Pending' ? 
+                        `<button class="btn-success" onclick="approveRequest('${req.id}')" style="margin-right:5px">Approve</button>
+                         <button class="btn-danger" onclick="rejectRequest('${req.id}')">Reject</button>` : 
+                        '-';
+                    html += `<tr>
+                        <td>${req.id}</td>
+                        <td>${emp?.name || 'Unknown'}</td>
+                        <td>${req.type}</td>
+                        <td>${req.startDate} to ${req.endDate}</td>
+                        <td>${req.days}</td>
+                        <td><span class="badge badge-${statusClass}">${req.status}</span></td>
+                        <td>${actions}</td>
+                    </tr>`;
+                });
+                html += '</tbody></tr>';
+                reqContainer.innerHTML = html;
             }
 
             // Balance table
@@ -720,10 +738,18 @@
             if (allLeaveBalance.length === 0) {
                 balContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px;">No balance data available</p>';
             } else {
-                balContainer.innerHTML = `<table><thead><tr><th>Employee</th><th>Total Allotted</th><th>Used</th><th>Remaining</th></tr></thead><tbody>${allLeaveBalance.map(b => {
-                    const emp = allEmployees.find(e => e.id === b.employeeId);
-                    return `<tr><td>${emp?.name || 'Unknown'}</td><td>${b.totalAllotted} days</td><td>${b.used} days</td><td><strong>${b.remaining} days</strong></td></tr>`;
-                }).join('')}</tbody></table>`;
+                let html = '<table><thead><tr><th>Employee</th><th>Total Allotted</th><th>Used</th><th>Remaining</th></tr></thead><tbody>';
+                allLeaveBalance.forEach(balance => {
+                    const emp = allEmployees.find(e => e.id === balance.employeeId);
+                    html += `<tr>
+                        <td>${emp?.name || 'Unknown'}</td>
+                        <td>${balance.totalAllotted} days</td>
+                        <td>${balance.used} days</td>
+                        <td><strong>${balance.remaining} days</strong></td>
+                    </tr>`;
+                });
+                html += '</tbody></tr>';
+                balContainer.innerHTML = html;
             }
 
             // Activity logs
@@ -731,7 +757,17 @@
             if (allActivityLogs.length === 0) {
                 logContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px;">No activity logs yet</p>';
             } else {
-                logContainer.innerHTML = `<table><thead><tr><th>Timestamp</th><th>Action</th><th>Details</th><th>User</th></tr></thead><tbody>${allActivityLogs.slice().reverse().slice(0, 50).map(l => `<tr><td>${new Date(l.timestamp).toLocaleString()}</td><td>${l.action}</td><td>${l.details}</td><td>${l.user}</td></tr>`).join('')}</tbody></table>`;
+                let html = '<table><thead><tr><th>Timestamp</th><th>Action</th><th>Details</th><th>User</th></tr></thead><tbody>';
+                allActivityLogs.slice().reverse().slice(0, 50).forEach(log => {
+                    html += `<tr>
+                        <td>${new Date(log.timestamp).toLocaleString()}</td>
+                        <td>${log.action}</td>
+                        <td>${log.details}</td>
+                        <td>${log.user}</td>
+                    </tr>`;
+                });
+                html += '</tbody>表>';
+                logContainer.innerHTML = html;
             }
 
             // Recent activity
@@ -740,7 +776,16 @@
             if (recent.length === 0) {
                 recentContainer.innerHTML = '<p style="color: var(--text-muted);">No recent activity</p>';
             } else {
-                recentContainer.innerHTML = `<table><thead><tr><th>Time</th><th>Action</th><th>Details</th></tr></thead><tbody>${recent.map(l => `<tr><td>${new Date(l.timestamp).toLocaleString()}</td><td>${l.action}</td><td>${l.details}</td></tr>`).join('')}</tbody></table>`;
+                let html = '<table><thead><tr><th>Time</th><th>Action</th><th>Details</th></tr></thead><tbody>';
+                recent.forEach(log => {
+                    html += `<tr>
+                        <td>${new Date(log.timestamp).toLocaleString()}</td>
+                        <td>${log.action}</td>
+                        <td>${log.details}</td>
+                    </tr>`;
+                });
+                html += '</tbody>赶';
+                recentContainer.innerHTML = html;
             }
         }
 
@@ -759,90 +804,118 @@
 
         window.addEmployee = async function(name, hireDate) {
             const id = `EMP-${Date.now()}`;
-            await gapi.client.sheets.spreadsheets.values.append({
-                spreadsheetId: CONFIG.SPREADSHEET_ID,
-                range: 'Employees!A:D',
-                valueInputOption: 'RAW',
-                resource: { values: [[id, name, hireDate, 'Active']] }
-            });
-            await gapi.client.sheets.spreadsheets.values.append({
-                spreadsheetId: CONFIG.SPREADSHEET_ID,
-                range: 'LeaveBalance!A:E',
-                valueInputOption: 'RAW',
-                resource: { values: [[id, 16, 0, 16, new Date().toISOString()]] }
-            });
-            await logActivity(`Added employee: ${name}`, `ID: ${id}`);
-            showAlert(`Employee "${name}" added successfully!`, 'success');
-            await loadAllData();
+            try {
+                await gapi.client.sheets.spreadsheets.values.append({
+                    spreadsheetId: CONFIG.SPREADSHEET_ID,
+                    range: 'Employees!A:D',
+                    valueInputOption: 'RAW',
+                    resource: { values: [[id, name, hireDate, 'Active']] }
+                });
+                await gapi.client.sheets.spreadsheets.values.append({
+                    spreadsheetId: CONFIG.SPREADSHEET_ID,
+                    range: 'LeaveBalance!A:E',
+                    valueInputOption: 'RAW',
+                    resource: { values: [[id, 16, 0, 16, new Date().toISOString()]] }
+                });
+                await logActivity(`Added employee: ${name}`, `ID: ${id}`);
+                showAlert(`Employee "${name}" added successfully!`, 'success');
+                await loadAllData();
+                return true;
+            } catch (error) {
+                console.error('Error adding employee:', error);
+                showAlert('Error adding employee: ' + error.message, 'error');
+                return false;
+            }
         };
 
         window.submitLeave = async function(empId, type, start, end, days, reason) {
             const reqId = `REQ-${Date.now()}`;
-            await gapi.client.sheets.spreadsheets.values.append({
-                spreadsheetId: CONFIG.SPREADSHEET_ID,
-                range: 'LeaveRequests!A:H',
-                valueInputOption: 'RAW',
-                resource: { values: [[reqId, empId, type, start, end, days, 'Pending', reason]] }
-            });
-            const emp = allEmployees.find(e => e.id === empId);
-            await logActivity('Leave request submitted', `${emp?.name} - ${days} days (${type})`);
-            showAlert('Leave request submitted successfully!', 'success');
-            await loadAllData();
+            try {
+                await gapi.client.sheets.spreadsheets.values.append({
+                    spreadsheetId: CONFIG.SPREADSHEET_ID,
+                    range: 'LeaveRequests!A:H',
+                    valueInputOption: 'RAW',
+                    resource: { values: [[reqId, empId, type, start, end, days, 'Pending', reason]] }
+                });
+                const emp = allEmployees.find(e => e.id === empId);
+                await logActivity('Leave request submitted', `${emp?.name} - ${days} days (${type})`);
+                showAlert('Leave request submitted successfully!', 'success');
+                await loadAllData();
+                return true;
+            } catch (error) {
+                console.error('Error submitting leave:', error);
+                showAlert('Error submitting request: ' + error.message, 'error');
+                return false;
+            }
         };
 
         window.approveRequest = async function(reqId) {
             const req = allLeaveRequests.find(r => r.id === reqId);
             if (!req) return;
-            const rowIdx = allLeaveRequests.indexOf(req) + 2;
-            await gapi.client.sheets.spreadsheets.values.update({
-                spreadsheetId: CONFIG.SPREADSHEET_ID,
-                range: `LeaveRequests!G${rowIdx}`,
-                valueInputOption: 'RAW',
-                resource: { values: [['Approved']] }
-            });
-            const bal = allLeaveBalance.find(b => b.employeeId === req.employeeId);
-            if (bal) {
-                const newUsed = bal.used + req.days;
-                const newRem = bal.totalAllotted - newUsed;
-                const balRow = allLeaveBalance.indexOf(bal) + 2;
+            try {
+                const rowIdx = allLeaveRequests.findIndex(r => r.id === reqId) + 2;
                 await gapi.client.sheets.spreadsheets.values.update({
                     spreadsheetId: CONFIG.SPREADSHEET_ID,
-                    range: `LeaveBalance!B${balRow}:D${balRow}`,
+                    range: `LeaveRequests!G${rowIdx}`,
                     valueInputOption: 'RAW',
-                    resource: { values: [[bal.totalAllotted, newUsed, newRem]] }
+                    resource: { values: [['Approved']] }
                 });
+                const bal = allLeaveBalance.find(b => b.employeeId === req.employeeId);
+                if (bal) {
+                    const newUsed = bal.used + req.days;
+                    const newRem = bal.totalAllotted - newUsed;
+                    const balRow = allLeaveBalance.findIndex(b => b.employeeId === req.employeeId) + 2;
+                    await gapi.client.sheets.spreadsheets.values.update({
+                        spreadsheetId: CONFIG.SPREADSHEET_ID,
+                        range: `LeaveBalance!B${balRow}:D${balRow}`,
+                        valueInputOption: 'RAW',
+                        resource: { values: [[bal.totalAllotted, newUsed, newRem]] }
+                    });
+                }
+                await logActivity('Leave request approved', `Request ID: ${reqId}`);
+                showAlert('Leave request approved!', 'success');
+                await loadAllData();
+            } catch (error) {
+                console.error('Error approving request:', error);
+                showAlert('Error approving request: ' + error.message, 'error');
             }
-            await logActivity('Leave request approved', `Request ID: ${reqId}`);
-            showAlert('Leave request approved!', 'success');
-            await loadAllData();
         };
 
         window.rejectRequest = async function(reqId) {
             const req = allLeaveRequests.find(r => r.id === reqId);
             if (!req) return;
-            const rowIdx = allLeaveRequests.indexOf(req) + 2;
-            await gapi.client.sheets.spreadsheets.values.update({
-                spreadsheetId: CONFIG.SPREADSHEET_ID,
-                range: `LeaveRequests!G${rowIdx}`,
-                valueInputOption: 'RAW',
-                resource: { values: [['Rejected']] }
-            });
-            await logActivity('Leave request rejected', `Request ID: ${reqId}`);
-            showAlert('Leave request rejected!', 'success');
-            await loadAllData();
+            try {
+                const rowIdx = allLeaveRequests.findIndex(r => r.id === reqId) + 2;
+                await gapi.client.sheets.spreadsheets.values.update({
+                    spreadsheetId: CONFIG.SPREADSHEET_ID,
+                    range: `LeaveRequests!G${rowIdx}`,
+                    valueInputOption: 'RAW',
+                    resource: { values: [['Rejected']] }
+                });
+                await logActivity('Leave request rejected', `Request ID: ${reqId}`);
+                showAlert('Leave request rejected!', 'success');
+                await loadAllData();
+            } catch (error) {
+                console.error('Error rejecting request:', error);
+                showAlert('Error rejecting request: ' + error.message, 'error');
+            }
         };
 
-        // Initialize Google Auth
-        async function initializeGapi() {
-            await new Promise((resolve) => {
-                gapi.load('client', resolve);
-            });
-            
-            await gapi.client.init({
+        // Initialize Google API
+        function initializeGapiClient() {
+            return gapi.client.init({
                 apiKey: CONFIG.API_KEY,
                 discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+            }).then(() => {
+                gapiInited = true;
+                console.log('GAPI client initialized');
+            }).catch(err => {
+                console.error('Error initializing GAPI:', err);
+                document.getElementById('errorMessage').innerText = 'Error initializing Google API: ' + err.message;
             });
+        }
 
+        function initializeGisClient() {
             tokenClient = google.accounts.oauth2.initTokenClient({
                 client_id: CONFIG.CLIENT_ID,
                 scope: CONFIG.SCOPES,
@@ -854,18 +927,32 @@
                         document.getElementById('appContainer').classList.remove('hidden');
                         await loadAllData();
                         showAlert('Successfully connected to Google Sheets!', 'success');
+                    } else {
+                        console.error('No access token received');
+                        document.getElementById('errorMessage').innerText = 'Authentication failed. Please try again.';
                     }
                 },
             });
+            gisInited = true;
+            console.log('GIS client initialized');
         }
 
         document.getElementById('loginBtn')?.addEventListener('click', () => {
-            tokenClient.requestAccessToken();
+            if (tokenClient) {
+                tokenClient.requestAccessToken();
+            } else {
+                document.getElementById('errorMessage').innerText = 'Initializing, please wait and try again...';
+                setTimeout(() => {
+                    if (tokenClient) tokenClient.requestAccessToken();
+                }, 1000);
+            }
         });
 
         document.getElementById('logoutBtn')?.addEventListener('click', () => {
             isAuthenticated = false;
-            gapi.client.setToken(null);
+            if (gapi.client) {
+                gapi.client.setToken(null);
+            }
             document.getElementById('authContainer').classList.remove('hidden');
             document.getElementById('appContainer').classList.add('hidden');
             showAlert('Logged out successfully', 'info');
@@ -910,10 +997,12 @@
                 return;
             }
             
-            const hireDays = (Date.now() - new Date(emp.hireDate)) / (1000 * 60 * 60 * 24);
-            if (hireDays < 60 && type !== 'Sick') {
-                showAlert('Employee must be with company for 60 days before taking regular leave', 'error');
-                return;
+            if (emp && emp.hireDate) {
+                const hireDays = (Date.now() - new Date(emp.hireDate).getTime()) / (1000 * 60 * 60 * 24);
+                if (hireDays < 60 && type !== 'Sick') {
+                    showAlert('Employee must be with company for 60 days before taking regular leave', 'error');
+                    return;
+                }
             }
             
             await submitLeave(empId, type, start, end, days, reason);
@@ -921,20 +1010,23 @@
             document.getElementById('calculatedDays').value = '0 days';
         });
 
-        document.getElementById('startDate')?.addEventListener('change', () => {
+        function updateCalculatedDays() {
             const s = document.getElementById('startDate').value;
             const e = document.getElementById('endDate').value;
-            if (s && e) document.getElementById('calculatedDays').value = calculateLeaveDays(s, e) + ' days';
-        });
-        
-        document.getElementById('endDate')?.addEventListener('change', () => {
-            const s = document.getElementById('startDate').value;
-            const e = document.getElementById('endDate').value;
-            if (s && e) document.getElementById('calculatedDays').value = calculateLeaveDays(s, e) + ' days';
-        });
+            if (s && e) {
+                const days = calculateLeaveDays(s, e);
+                document.getElementById('calculatedDays').value = days + ' days';
+            }
+        }
 
-        // Initialize everything
-        initializeGapi();
+        document.getElementById('startDate')?.addEventListener('change', updateCalculatedDays);
+        document.getElementById('endDate')?.addEventListener('change', updateCalculatedDays);
+
+        // Load gapi and initialize
+        gapi.load('client', async () => {
+            await initializeGapiClient();
+            initializeGisClient();
+        });
     </script>
 </body>
 </html>
