@@ -1,239 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HR Leave System</title>
+
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
+
+<style>
+/* KEEP SIMPLE (your full UI can be pasted back later safely) */
+body { font-family: Arial; background:#f8fafc; }
+.hidden { display:none; }
+#debug { color:red; font-weight:bold; padding:10px; }
+</style>
+</head>
+
+<body>
+
+<div id="debug"></div>
+
+<!-- AUTH -->
+<div id="authContainer">
+    <h2>HR System Login</h2>
+    <button id="loginBtn">Sign in with Google</button>
+</div>
+
+<!-- APP -->
+<div id="appContainer" class="hidden">
+    <h2>HR Dashboard</h2>
+    <button id="logoutBtn">Logout</button>
+
+    <button onclick="loadAllData()">Load Data</button>
+</div>
+
 <script>
-    // ============ Configuration ============
-    const CONFIG = {
-        CLIENT_ID: '1058574831034-cb30fi18f3f05937969jksvhipso5hav.apps.googleusercontent.com',
-        SCOPES: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email',
-        SPREADSHEET_ID: '1NnOJFFLbPtuPYbI53dXIKA_KezdnxhCiqsPteuvL1Fc',
-        SHEET_NAMES: {
-            EMPLOYEES: 'Employees',
-            LEAVE_BALANCE: 'LeaveBalance',
-            LEAVE_REQUESTS: 'LeaveRequests',
-            ACTIVITY_LOGS: 'ActivityLogs'
+/* ================= YOUR CONFIG ================= */
+const CONFIG = {
+    CLIENT_ID: "1058574831034-cb30fi18f3f05937969jksvhipso5hav.apps.googleusercontent.com",
+    API_KEY: "AIzaSyD4oMaBJeXQy8JCpzqcOAJ9HexNAKCPlyY",
+    SCOPES: "https://www.googleapis.com/auth/spreadsheets",
+    SPREADSHEET_ID: "1NnOJFFLbPtuPYbI53dXIKA_KezdnxhCiqsPteuvL1Fc"
+};
+
+let tokenClient;
+let accessToken = null;
+
+/* ================= GLOBAL ERROR CATCH ================= */
+window.onerror = function(msg, src, line) {
+    document.getElementById("debug").innerText =
+        "ERROR: " + msg + " (line " + line + ")";
+};
+
+/* ================= START ================= */
+document.addEventListener("DOMContentLoaded", () => {
+    showAuth();
+    waitForGoogle();
+    setupButtons();
+});
+
+/* ================= WAIT FOR GOOGLE ================= */
+function waitForGoogle() {
+    let i = 0;
+
+    const check = () => {
+        i++;
+
+        if (window.gapi && window.google) {
+            initGapi();
+        } else if (i < 40) {
+            setTimeout(check, 250);
+        } else {
+            showError("Google scripts failed to load");
         }
     };
 
-    let accessToken = null;
-    let tokenClient;
+    check();
+}
 
-    let allEmployees = [];
-    let allLeaveRequests = [];
-    let allLeaveBalance = [];
-    let allActivityLogs = [];
-
-    // ============ INIT GOOGLE ============
-    function initializeGoogle() {
-        gapi.load('client', async () => {
+/* ================= INIT GAPI ================= */
+function initGapi() {
+    gapi.load("client", async () => {
+        try {
             await gapi.client.init({
-                apiKey: 'YOUR_API_KEY_HERE',
-                discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
+                apiKey: CONFIG.API_KEY,
+                discoveryDocs: [
+                    "https://sheets.googleapis.com/$discovery/rest?version=v4"
+                ]
             });
 
-            setupGoogleAuth();
-        });
-    }
+            initAuth();
 
-    // ============ FIXED AUTH FLOW ============
-    function setupGoogleAuth() {
+        } catch (e) {
+            showError("GAPI init failed: " + e.message);
+        }
+    });
+}
+
+/* ================= AUTH ================= */
+function initAuth() {
+    try {
         tokenClient = google.accounts.oauth2.initTokenClient({
             client_id: CONFIG.CLIENT_ID,
             scope: CONFIG.SCOPES,
-            callback: async (tokenResponse) => {
-                accessToken = tokenResponse.access_token;
+            callback: (resp) => {
+                accessToken = resp.access_token;
 
                 gapi.client.setToken({
                     access_token: accessToken
                 });
 
                 showApp();
-
-                await loadAllData();
+                loadAllData();
             }
         });
-
-        document.getElementById('loginBtn').addEventListener('click', () => {
-            tokenClient.requestAccessToken({ prompt: 'consent' });
-        });
+    } catch (e) {
+        showError("Auth error: " + e.message);
     }
+}
 
-    // ============ LOGOUT ============
-    function logout() {
+/* ================= UI ================= */
+function showApp() {
+    document.getElementById("authContainer").classList.add("hidden");
+    document.getElementById("appContainer").classList.remove("hidden");
+}
+
+function showAuth() {
+    document.getElementById("authContainer").classList.remove("hidden");
+    document.getElementById("appContainer").classList.add("hidden");
+}
+
+function showError(msg) {
+    document.getElementById("debug").innerText = msg;
+}
+
+/* ================= BUTTONS ================= */
+function setupButtons() {
+    document.getElementById("loginBtn").onclick = () => {
+        if (!tokenClient) {
+            showError("Google not ready");
+            return;
+        }
+        tokenClient.requestAccessToken({ prompt: "consent" });
+    };
+
+    document.getElementById("logoutBtn").onclick = () => {
         accessToken = null;
         gapi.client.setToken(null);
-        localStorage.removeItem('authToken');
-
-        allEmployees = [];
-        allLeaveRequests = [];
-        allLeaveBalance = [];
-        allActivityLogs = [];
-
         showAuth();
-    }
+    };
+}
 
-    // ============ UI ============
-    function showApp() {
-        document.getElementById('authContainer').classList.add('hidden');
-        document.getElementById('appContainer').classList.remove('hidden');
-    }
-
-    function showAuth() {
-        document.getElementById('authContainer').classList.remove('hidden');
-        document.getElementById('appContainer').classList.add('hidden');
-    }
-
-    function switchTab(tabName) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-
-        document.getElementById(tabName).classList.add('active');
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-    }
-
-    function showAlert(message, type = 'info') {
-        const alertContainer = document.getElementById('alertContainer');
-
-        const el = document.createElement('div');
-        el.className = `alert alert-${type}`;
-        el.innerText = message;
-
-        alertContainer.appendChild(el);
-
-        setTimeout(() => el.remove(), 4000);
-    }
-
-    // ============ DATA LOAD ============
-    async function loadAllData() {
-        try {
-            await loadEmployees();
-            await loadLeaveBalance();
-            await loadLeaveRequests();
-            await loadActivityLogs();
-
-            updateDashboard();
-            updateAllDisplays();
-        } catch (e) {
-            console.error(e);
-            showAlert("Failed to load data", "error");
-        }
-    }
-
-    async function loadEmployees() {
+/* ================= TEST SHEET CONNECTION ================= */
+async function loadAllData() {
+    try {
         const res = await gapi.client.sheets.spreadsheets.values.get({
             spreadsheetId: CONFIG.SPREADSHEET_ID,
-            range: `${CONFIG.SHEET_NAMES.EMPLOYEES}!A:D`
+            range: "Employees!A:D"
         });
 
-        const values = res.result.values || [];
+        console.log("DATA:", res.result.values);
 
-        allEmployees = values.slice(1).map((r, i) => ({
-            id: r[0],
-            name: r[1],
-            hireDate: r[2],
-            status: r[3]
-        }));
+        document.getElementById("debug").innerText =
+            "SUCCESS: Google Sheets connected ✔";
+
+    } catch (e) {
+        showError("Sheets error: " + e.message);
     }
-
-    async function loadLeaveBalance() {
-        const res = await gapi.client.sheets.spreadsheets.values.get({
-            spreadsheetId: CONFIG.SPREADSHEET_ID,
-            range: `${CONFIG.SHEET_NAMES.LEAVE_BALANCE}!A:E`
-        });
-
-        const values = res.result.values || [];
-
-        allLeaveBalance = values.slice(1).map(r => ({
-            employeeId: r[0],
-            totalAllotted: Number(r[1]) || 16,
-            used: Number(r[2]) || 0,
-            remaining: Number(r[3]) || 16
-        }));
-    }
-
-    async function loadLeaveRequests() {
-        const res = await gapi.client.sheets.spreadsheets.values.get({
-            spreadsheetId: CONFIG.SPREADSHEET_ID,
-            range: `${CONFIG.SHEET_NAMES.LEAVE_REQUESTS}!A:H`
-        });
-
-        const values = res.result.values || [];
-
-        allLeaveRequests = values.slice(1).map(r => ({
-            id: r[0],
-            employeeId: r[1],
-            type: r[2],
-            startDate: r[3],
-            endDate: r[4],
-            days: Number(r[5]) || 0,
-            status: r[6],
-            reason: r[7]
-        }));
-    }
-
-    async function loadActivityLogs() {
-        const res = await gapi.client.sheets.spreadsheets.values.get({
-            spreadsheetId: CONFIG.SPREADSHEET_ID,
-            range: `${CONFIG.SHEET_NAMES.ACTIVITY_LOGS}!A:D`
-        });
-
-        const values = res.result.values || [];
-
-        allActivityLogs = values.slice(1).map(r => ({
-            timestamp: r[0],
-            action: r[1],
-            details: r[2],
-            user: r[3]
-        }));
-    }
-
-    // ============ EMPLOYEE ============
-    async function addEmployee(name, hireDate) {
-        const id = "EMP-" + Date.now();
-
-        await gapi.client.sheets.spreadsheets.values.append({
-            spreadsheetId: CONFIG.SPREADSHEET_ID,
-            range: `${CONFIG.SHEET_NAMES.EMPLOYEES}!A:D`,
-            valueInputOption: "RAW",
-            resource: {
-                values: [[id, name, hireDate, "Active"]]
-            }
-        });
-
-        showAlert("Employee added", "success");
-        loadAllData();
-    }
-
-    // ============ LEAVE REQUEST ============
-    async function submitLeaveRequest(empId, type, start, end, days, reason) {
-        const id = "REQ-" + Date.now();
-
-        await gapi.client.sheets.spreadsheets.values.append({
-            spreadsheetId: CONFIG.SPREADSHEET_ID,
-            range: `${CONFIG.SHEET_NAMES.LEAVE_REQUESTS}!A:H`,
-            valueInputOption: "RAW",
-            resource: {
-                values: [[id, empId, type, start, end, days, "Pending", reason]]
-            }
-        });
-
-        showAlert("Leave request submitted", "success");
-        loadAllData();
-    }
-
-    // ============ INIT ============
-    document.addEventListener('DOMContentLoaded', () => {
-        initializeGoogle();
-
-        document.getElementById('logoutBtn').addEventListener('click', logout);
-
-        document.getElementById('employeeForm').addEventListener('submit', e => {
-            e.preventDefault();
-            addEmployee(
-                document.getElementById('employeeName').value,
-                document.getElementById('hireDate').value
-            );
-        });
-
-        document.getElementById('loginBtn').addEventListener('click', () => {
-            tokenClient.requestAccessToken({ prompt: 'consent' });
-        });
-    });
+}
 </script>
+
+</body>
+</html>
