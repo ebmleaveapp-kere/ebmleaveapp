@@ -133,25 +133,25 @@
             border-top: 1px solid var(--border);
         }
 
+        /* Clean logout button - text only */
         .logout-btn {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            border-radius: var(--radius-md);
-            color: var(--text-secondary);
+            justify-content: flex-start;
+            padding: 0.75rem 0;
             background: transparent;
             border: none;
-            width: 100%;
-            cursor: pointer;
+            color: var(--text-secondary);
             font-size: 0.875rem;
             font-weight: 500;
+            cursor: pointer;
             transition: all 0.2s ease;
             font-family: inherit;
+            width: 100%;
+            text-align: left;
         }
 
         .logout-btn:hover {
-            background-color: #fff5f5;
             color: var(--danger);
         }
 
@@ -450,13 +450,13 @@
             border-radius: 4px;
         }
 
-        /* Tab Content - CRITICAL FIX */
+        /* Tab Content */
         .tab-content {
-            display: none !important;
+            display: none;
         }
 
         .tab-content.active {
-            display: block !important;
+            display: block;
         }
 
         .hidden {
@@ -539,10 +539,7 @@
                 </nav>
                 
                 <div class="sidebar-footer">
-                    <button id="logoutBtn" class="logout-btn">
-                        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                        <span>Logout</span>
-                    </button>
+                    <button id="logoutBtn" class="logout-btn">Logout</button>
                 </div>
             </aside>
 
@@ -661,42 +658,34 @@
         let isAuthenticated = false;
         let allEmployees = [], allLeaveRequests = [], allLeaveBalance = [], allActivityLogs = [];
 
-        // ============ TAB NAVIGATION - FIXED ============
+        // ============ TAB NAVIGATION ============
         function switchToTab(tabName) {
-            // Get all tab contents
             const allTabs = document.querySelectorAll('.tab-content');
             const allNavItems = document.querySelectorAll('.nav-item');
             
-            // Remove active class from all tabs
             allTabs.forEach(tab => {
                 tab.classList.remove('active');
             });
             
-            // Remove active class from all nav items
             allNavItems.forEach(item => {
                 item.classList.remove('active');
             });
             
-            // Add active class to selected tab
             const selectedTab = document.getElementById(tabName);
             if (selectedTab) {
                 selectedTab.classList.add('active');
             }
             
-            // Add active class to selected nav item
             const selectedNav = document.querySelector(`.nav-item[data-tab="${tabName}"]`);
             if (selectedNav) {
                 selectedNav.classList.add('active');
             }
         }
 
-        // Initialize tab listeners
         function initTabListeners() {
             const navItems = document.querySelectorAll('.nav-item');
             navItems.forEach(btn => {
-                // Remove any existing listeners to avoid duplicates
                 btn.removeEventListener('click', btn._listener);
-                // Create new listener
                 const listener = function() {
                     const tabName = this.getAttribute('data-tab');
                     switchToTab(tabName);
@@ -706,7 +695,6 @@
             });
         }
 
-        // Make switchToTab available globally for the "View All Logs" button
         window.switchToTab = switchToTab;
 
         // ============ UI HELPERS ============
@@ -744,7 +732,6 @@
             if (!isAuthenticated) return;
             
             try {
-                // Load Employees
                 const empResp = await gapi.client.sheets.spreadsheets.values.get({
                     spreadsheetId: CONFIG.SPREADSHEET_ID,
                     range: 'Employees!A:D'
@@ -756,7 +743,6 @@
                     status: r[3] || 'Active' 
                 })).filter(e => e.name);
 
-                // Load Leave Balance
                 const balResp = await gapi.client.sheets.spreadsheets.values.get({
                     spreadsheetId: CONFIG.SPREADSHEET_ID,
                     range: 'LeaveBalance!A:E'
@@ -768,7 +754,6 @@
                     remaining: parseFloat(r[3]) || 16 
                 }));
 
-                // Load Leave Requests
                 const reqResp = await gapi.client.sheets.spreadsheets.values.get({
                     spreadsheetId: CONFIG.SPREADSHEET_ID,
                     range: 'LeaveRequests!A:H'
@@ -784,7 +769,6 @@
                     reason: r[7] 
                 }));
 
-                // Load Activity Logs
                 const logResp = await gapi.client.sheets.spreadsheets.values.get({
                     spreadsheetId: CONFIG.SPREADSHEET_ID,
                     range: 'ActivityLogs!A:D'
@@ -804,7 +788,6 @@
         }
 
         function updateUI() {
-            // Update dashboard stats
             document.getElementById('totalEmployees').innerText = allEmployees.length;
             document.getElementById('pendingRequests').innerText = allLeaveRequests.filter(r => r.status === 'Pending').length;
             const now = new Date();
@@ -812,7 +795,6 @@
             document.getElementById('approvedMonth').innerText = approvedThisMonth;
             document.getElementById('totalLogs').innerText = allActivityLogs.length;
 
-            // Update employee dropdown
             const dropdown = document.getElementById('requestEmployee');
             if (dropdown) {
                 dropdown.innerHTML = '<option value="">Select employee</option>';
@@ -901,7 +883,7 @@
                 logContainer.innerHTML = html;
             }
 
-            // Recent Activity (for dashboard)
+            // Recent Activity
             const recentContainer = document.getElementById('recentActivityContainer');
             const recent = allActivityLogs.slice(-5).reverse();
             if (recent.length === 0) {
@@ -915,7 +897,7 @@
                         <td>${log.details}</td>
                     </tr>`;
                 });
-                html += '</tbody></table>';
+                html += '</tbody></tr>';
                 recentContainer.innerHTML = html;
             }
         }
