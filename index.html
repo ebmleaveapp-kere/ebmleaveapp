@@ -450,7 +450,15 @@
             border-radius: 4px;
         }
 
-        /* Hidden */
+        /* Tab Content - CRITICAL FIX */
+        .tab-content {
+            display: none !important;
+        }
+
+        .tab-content.active {
+            display: block !important;
+        }
+
         .hidden {
             display: none !important;
         }
@@ -508,7 +516,7 @@
                 </div>
                 
                 <nav class="nav-menu">
-                    <button class="nav-item" data-tab="dashboard">
+                    <button class="nav-item active" data-tab="dashboard">
                         <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2h-5v-7H9v7H4a2 2 0 0 1-2-2z"/></svg>
                         <span>Dashboard</span>
                     </button>
@@ -543,7 +551,7 @@
                 <div id="alertContainer"></div>
 
                 <!-- Dashboard Tab -->
-                <div id="dashboard" class="tab-content">
+                <div id="dashboard" class="tab-content active">
                     <div class="stats-grid">
                         <div class="stat-card"><h3>Total Employees</h3><div class="value" id="totalEmployees">0</div></div>
                         <div class="stat-card"><h3>Pending Requests</h3><div class="value" id="pendingRequests">0</div></div>
@@ -653,49 +661,67 @@
         let isAuthenticated = false;
         let allEmployees = [], allLeaveRequests = [], allLeaveBalance = [], allActivityLogs = [];
 
-        // ============ TAB NAVIGATION ============
+        // ============ TAB NAVIGATION - FIXED ============
         function switchToTab(tabName) {
-            // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(tab => {
+            // Get all tab contents
+            const allTabs = document.querySelectorAll('.tab-content');
+            const allNavItems = document.querySelectorAll('.nav-item');
+            
+            // Remove active class from all tabs
+            allTabs.forEach(tab => {
                 tab.classList.remove('active');
             });
             
             // Remove active class from all nav items
-            document.querySelectorAll('.nav-item').forEach(btn => {
-                btn.classList.remove('active');
+            allNavItems.forEach(item => {
+                item.classList.remove('active');
             });
             
-            // Show selected tab
+            // Add active class to selected tab
             const selectedTab = document.getElementById(tabName);
             if (selectedTab) {
                 selectedTab.classList.add('active');
             }
             
-            // Add active class to clicked button
-            const selectedButton = document.querySelector(`.nav-item[data-tab="${tabName}"]`);
-            if (selectedButton) {
-                selectedButton.classList.add('active');
+            // Add active class to selected nav item
+            const selectedNav = document.querySelector(`.nav-item[data-tab="${tabName}"]`);
+            if (selectedNav) {
+                selectedNav.classList.add('active');
             }
         }
 
+        // Initialize tab listeners
         function initTabListeners() {
             const navItems = document.querySelectorAll('.nav-item');
             navItems.forEach(btn => {
-                btn.addEventListener('click', function() {
+                // Remove any existing listeners to avoid duplicates
+                btn.removeEventListener('click', btn._listener);
+                // Create new listener
+                const listener = function() {
                     const tabName = this.getAttribute('data-tab');
                     switchToTab(tabName);
-                });
+                };
+                btn._listener = listener;
+                btn.addEventListener('click', listener);
             });
         }
 
+        // Make switchToTab available globally for the "View All Logs" button
         window.switchToTab = switchToTab;
 
         // ============ UI HELPERS ============
         function showAlert(message, type) {
             const container = document.getElementById('alertContainer');
             const id = 'alert-' + Date.now();
-            container.insertAdjacentHTML('beforeend', `<div id="${id}" class="alert alert-${type}">${message}</div>`);
-            setTimeout(() => document.getElementById(id)?.remove(), 5000);
+            const alertDiv = document.createElement('div');
+            alertDiv.id = id;
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            container.appendChild(alertDiv);
+            setTimeout(() => {
+                const element = document.getElementById(id);
+                if (element) element.remove();
+            }, 5000);
         }
 
         function calculateLeaveDays(start, end) {
@@ -1118,14 +1144,6 @@
         gapi.load('client', async () => {
             await initializeGapiClient();
             initializeGisClient();
-        });
-
-        // Set default active tab
-        document.addEventListener('DOMContentLoaded', () => {
-            const dashboardTab = document.querySelector('.tab-content');
-            if (dashboardTab) {
-                dashboardTab.style.display = 'block';
-            }
         });
     </script>
 </body>
