@@ -618,7 +618,7 @@
         // ============ Configuration ============
         const CONFIG = {
             CLIENT_ID: '1058574831034-cb30fi18f3f05937969jksvhipso5hav.apps.googleusercontent.com',
-            SCOPES: 'https://www.googleapis.com/auth/spreadsheets',
+            SCOPES: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email',
             SPREADSHEET_ID: '1NnOJFFLbPtuPYbI53dXIKA_KezdnxhCiqsPteuvL1Fc',
             SHEET_NAMES: {
                 EMPLOYEES: 'Employees',
@@ -648,19 +648,24 @@
             });
         }
 
-        function setupGoogleSignIn() {
-            google.accounts.id.initialize({
-                client_id: CONFIG.CLIENT_ID,
-                callback: handleCredentialResponse
-            });
-            
-            document.getElementById('loginBtn').addEventListener('click', () => {
-                google.accounts.id.renderButton(
-                    document.getElementById('loginBtn'),
-                    { theme: 'outline', size: 'large' }
-                );
-            });
+        let tokenClient;
+
+function setupGoogleSignIn() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CONFIG.CLIENT_ID,
+        scope: CONFIG.SCOPES,
+        callback: (tokenResponse) => {
+            accessToken = tokenResponse.access_token;
+            gapi.client.setToken(tokenResponse);
+            showApp();
+            loadAllData();
         }
+    });
+
+    document.getElementById('loginBtn').addEventListener('click', () => {
+        tokenClient.requestAccessToken();
+    });
+}
 
         function handleCredentialResponse(response) {
             accessToken = response.credential;
